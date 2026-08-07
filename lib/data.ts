@@ -4,6 +4,7 @@ export type Exercise = {
   reps: string;
   rest: string;
   targetWeight?: number;
+  formTip: string;
 };
 
 export type PlanDay = {
@@ -11,6 +12,7 @@ export type PlanDay = {
   focus: string;
   isRestDay?: boolean;
   exercises: Exercise[];
+  coachNote: string;
 };
 
 export type Goal = {
@@ -47,7 +49,7 @@ export const GOAL_TYPES = [
   "Build muscle",
   "Lose fat",
   "Improve endurance",
-  "General fitness",
+  "Improve Overall Fitness",
 ];
 
 export const EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced"];
@@ -94,46 +96,191 @@ export const WEEKLY_PLAN: PlanDay[] = [
     day: "Monday",
     focus: "Upper Body Push",
     exercises: [
-      { name: "Bench Press", sets: 4, reps: "6", rest: "2 min", targetWeight: 105 },
-      { name: "Overhead Press", sets: 3, reps: "8", rest: "90 sec", targetWeight: 65 },
-      { name: "Incline Dumbbell Press", sets: 3, reps: "10", rest: "90 sec", targetWeight: 40 },
-      { name: "Triceps Pushdown", sets: 3, reps: "12", rest: "60 sec", targetWeight: 35 },
+      {
+        name: "Bench Press",
+        sets: 4,
+        reps: "6",
+        rest: "2 min",
+        targetWeight: 105,
+        formTip: "Keep your feet planted, shoulder blades pulled back and down, and lower the bar to your mid-chest with control.",
+      },
+      {
+        name: "Overhead Press",
+        sets: 3,
+        reps: "8",
+        rest: "90 sec",
+        targetWeight: 65,
+        formTip: "Brace your core and glutes so you're not leaning back; press the bar in a straight line overhead.",
+      },
+      {
+        name: "Incline Dumbbell Press",
+        sets: 3,
+        reps: "10",
+        rest: "90 sec",
+        targetWeight: 40,
+        formTip: "Keep a slight arch, elbows at about 45°, and don't let the dumbbells drift too far forward.",
+      },
+      {
+        name: "Triceps Pushdown",
+        sets: 3,
+        reps: "12",
+        rest: "60 sec",
+        targetWeight: 35,
+        formTip: "Keep your elbows pinned to your sides and only move at the elbow, not the shoulder.",
+      },
     ],
+    coachNote:
+      "Push days are where you're strongest right now — try adding a rep or two on the overhead press before adding weight.",
   },
-  { day: "Tuesday", focus: "Rest / Mobility", isRestDay: true, exercises: [] },
+  {
+    day: "Tuesday",
+    focus: "Rest / Mobility",
+    isRestDay: true,
+    exercises: [],
+    coachNote: "Rest day — prioritize sleep, hydration, and light mobility work. No sets to log today.",
+  },
   {
     day: "Wednesday",
     focus: "Lower Body",
     exercises: [
-      { name: "Back Squat", sets: 4, reps: "6", rest: "2 min", targetWeight: 155 },
-      { name: "Romanian Deadlift", sets: 3, reps: "8", rest: "90 sec", targetWeight: 115 },
-      { name: "Walking Lunges", sets: 3, reps: "12 each leg", rest: "60 sec", targetWeight: 30 },
-      { name: "Leg Press", sets: 3, reps: "10", rest: "90 sec", targetWeight: 220 },
-      { name: "Plank", sets: 3, reps: "45 sec", rest: "45 sec" },
+      {
+        name: "Back Squat",
+        sets: 4,
+        reps: "6",
+        rest: "2 min",
+        targetWeight: 155,
+        formTip: "Keep your chest up and knees tracking over your toes; hit depth before driving back up.",
+      },
+      {
+        name: "Romanian Deadlift",
+        sets: 3,
+        reps: "8",
+        rest: "90 sec",
+        targetWeight: 115,
+        formTip:
+          "Hinge at the hips with a soft knee bend, keep the bar close to your legs, and stop when you feel a stretch in your hamstrings.",
+      },
+      {
+        name: "Walking Lunges",
+        sets: 3,
+        reps: "12 each leg",
+        rest: "60 sec",
+        targetWeight: 30,
+        formTip: "Keep your torso upright and step far enough that your front knee stays behind your toes.",
+      },
+      {
+        name: "Leg Press",
+        sets: 3,
+        reps: "10",
+        rest: "90 sec",
+        targetWeight: 220,
+        formTip: "Don't let your lower back round off the pad; stop the descent before it lifts.",
+      },
+      {
+        name: "Plank",
+        sets: 3,
+        reps: "45 sec",
+        rest: "45 sec",
+        formTip: "Squeeze your glutes and brace your abs so your hips don't sag or pike up.",
+      },
     ],
+    coachNote:
+      "Nice pace on squats last week — try adding 5 lbs to your working sets today. Keep the core braced through the RDLs and don't rush the lunges.",
   },
-  { day: "Thursday", focus: "Rest", isRestDay: true, exercises: [] },
+  {
+    day: "Thursday",
+    focus: "Rest",
+    isRestDay: true,
+    exercises: [],
+    coachNote: "Rest day — prioritize sleep, hydration, and light mobility work. No sets to log today.",
+  },
   {
     day: "Friday",
     focus: "Upper Body Pull",
     exercises: [
-      { name: "Barbell Row", sets: 4, reps: "8", rest: "90 sec", targetWeight: 95 },
-      { name: "Lat Pulldown", sets: 3, reps: "10", rest: "90 sec", targetWeight: 100 },
-      { name: "Seated Cable Row", sets: 3, reps: "10", rest: "90 sec", targetWeight: 90 },
-      { name: "Barbell Curl", sets: 3, reps: "12", rest: "60 sec", targetWeight: 45 },
+      {
+        name: "Barbell Row",
+        sets: 4,
+        reps: "8",
+        rest: "90 sec",
+        targetWeight: 95,
+        formTip: "Hinge forward with a flat back and pull the bar to your lower ribs, leading with your elbows.",
+      },
+      {
+        name: "Lat Pulldown",
+        sets: 3,
+        reps: "10",
+        rest: "90 sec",
+        targetWeight: 100,
+        formTip: "Pull the bar to your upper chest and avoid leaning back excessively to cheat the weight down.",
+      },
+      {
+        name: "Seated Cable Row",
+        sets: 3,
+        reps: "10",
+        rest: "90 sec",
+        targetWeight: 90,
+        formTip: "Keep your torso still and pull with your back, not just your arms — squeeze your shoulder blades together.",
+      },
+      {
+        name: "Barbell Curl",
+        sets: 3,
+        reps: "12",
+        rest: "60 sec",
+        targetWeight: 45,
+        formTip: "Keep your elbows tucked at your sides and avoid swinging your torso to move the weight.",
+      },
     ],
+    coachNote:
+      "Pull volume has been climbing nicely — keep your shoulder blades pulled back on rows and don't let them turn into shrugs.",
   },
   {
     day: "Saturday",
     focus: "Full Body / Accessories",
     exercises: [
-      { name: "Trap Bar Deadlift", sets: 3, reps: "6", rest: "2 min", targetWeight: 185 },
-      { name: "Dumbbell Shoulder Press", sets: 3, reps: "10", rest: "90 sec", targetWeight: 35 },
-      { name: "Cable Face Pull", sets: 3, reps: "15", rest: "60 sec", targetWeight: 30 },
-      { name: "Farmer's Carry", sets: 3, reps: "40 yd", rest: "60 sec", targetWeight: 50 },
+      {
+        name: "Trap Bar Deadlift",
+        sets: 3,
+        reps: "6",
+        rest: "2 min",
+        targetWeight: 185,
+        formTip: "Push through the floor with your legs first, keep the bar path close, and stand tall at the top.",
+      },
+      {
+        name: "Dumbbell Shoulder Press",
+        sets: 3,
+        reps: "10",
+        rest: "90 sec",
+        targetWeight: 35,
+        formTip: "Keep your core tight so you're not overarching your lower back as you press overhead.",
+      },
+      {
+        name: "Cable Face Pull",
+        sets: 3,
+        reps: "15",
+        rest: "60 sec",
+        targetWeight: 30,
+        formTip: "Pull toward your face with elbows high and squeeze your shoulder blades at the end of the movement.",
+      },
+      {
+        name: "Farmer's Carry",
+        sets: 3,
+        reps: "40 yd",
+        rest: "60 sec",
+        targetWeight: 50,
+        formTip: "Keep your shoulders back and core braced — walk with control, don't let the weights swing.",
+      },
     ],
+    coachNote:
+      "This one's your accessory day — lighter loads, but keep intent high on every rep, especially the face pulls.",
   },
-  { day: "Sunday", focus: "Rest", isRestDay: true, exercises: [] },
+  {
+    day: "Sunday",
+    focus: "Rest",
+    isRestDay: true,
+    exercises: [],
+    coachNote: "Rest day — prioritize sleep, hydration, and light mobility work. No sets to log today.",
+  },
 ];
 
 export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];

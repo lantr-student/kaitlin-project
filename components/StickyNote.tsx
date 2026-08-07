@@ -1,0 +1,35 @@
+"use client";
+
+import { caveat } from "@/lib/theme";
+
+const NOTE_TEXT = "text-base leading-snug text-[#5A4A1E] dark:text-[#E9DBA0]";
+
+export function StickyNote({
+  label,
+  text,
+  editable = false,
+  tilt = "right",
+}: {
+  label: string;
+  text: string;
+  editable?: boolean;
+  tilt?: "left" | "right";
+}) {
+  return (
+    <div
+      className={`flex ${
+        tilt === "left" ? "-rotate-1" : "rotate-1"
+      } flex-col items-center gap-1 rounded-lg border border-[#E3CE7A] bg-[#FBEEA8] px-4 py-3 text-center shadow-sm shadow-black/10 dark:border-[#5C4E24] dark:bg-[#3B331B]`}
+    >
+      <span className={`text-xs text-[#5A4A1E]/70 dark:text-[#E9DBA0]/70 ${caveat.className}`}>{label}</span>
+      {editable ? (
+        <textarea
+          defaultValue={text}
+          className={`field-sizing-content max-h-40 max-w-56 resize-none overflow-y-auto border-0 bg-transparent focus:outline-none ${NOTE_TEXT} ${caveat.className}`}
+        />
+      ) : (
+        <p className={`max-h-40 max-w-56 overflow-y-auto ${NOTE_TEXT} ${caveat.className}`}>{text}</p>
+      )}
+    </div>
+  );
+}
