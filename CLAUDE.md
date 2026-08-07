@@ -5,6 +5,7 @@ A personal-training agent that takes a real goal, builds the plan to reach it, w
 
 ## Standing rules
 - Keep everything as simple as possible; build nothing I haven't asked for.
+- Ask questions for clarifications and details
 - After each change, explain what changed in plain English.
 - Ask before touching anything outside this project folder.
 

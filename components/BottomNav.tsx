@@ -24,7 +24,7 @@ export default function BottomNav() {
               href={tab.href}
               className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors sm:flex-none sm:flex-row sm:gap-2 sm:py-3.5 sm:text-sm ${
                 active
-                  ? "text-blue-600 dark:text-blue-400"
+                  ? "text-[#33465C] dark:text-[#6E8CB0]"
                   : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
               }`}
             >
