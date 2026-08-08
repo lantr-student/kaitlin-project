@@ -83,8 +83,8 @@ export const DEFAULT_ONBOARDING: OnboardingAnswers = {
   goal: {
     metric: "Bench Press",
     unit: "lbs",
-    startValue: 95,
-    currentValue: 105,
+    startValue: 105,
+    currentValue: 115,
     targetValue: 135,
     startDate: "2026-06-01",
     targetDate: "2026-12-15",
@@ -101,7 +101,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
         sets: 4,
         reps: "6",
         rest: "2 min",
-        targetWeight: 105,
+        targetWeight: 115,
         formTip: "Keep your feet planted, shoulder blades pulled back and down, and lower the bar to your mid-chest with control.",
       },
       {
@@ -287,6 +287,9 @@ export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
 
 export const PROGRESS_ACTIVITY = {
   streakDays: 4,
+  weekStreak: 3,
+  workoutsThisWeek: 1,
+  plannedThisWeek: 4,
   workoutsThisMonth: 9,
   plannedThisMonth: 13,
 };
@@ -315,6 +318,14 @@ export function today(): Date {
 
 export function isHigherBetter(goal: Goal): boolean {
   return goal.targetValue >= goal.startValue;
+}
+
+/** How far the user's current value is from start toward target, as a 0-100 percentage. */
+export function goalProgressPercent(goal: Goal): number {
+  const span = goal.targetValue - goal.startValue;
+  if (span === 0) return 100;
+  const frac = (goal.currentValue - goal.startValue) / span;
+  return Math.round(Math.min(Math.max(frac, 0), 1) * 100);
 }
 
 function isoDate(date: Date): string {

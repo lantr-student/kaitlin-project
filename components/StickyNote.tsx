@@ -19,7 +19,7 @@ export function StickyNote({
     <div
       className={`flex ${
         tilt === "left" ? "-rotate-1" : "rotate-1"
-      } flex-col items-center gap-1 rounded-lg border border-[#E3CE7A] bg-[#FBEEA8] px-4 py-3 text-center shadow-sm shadow-black/10 dark:border-[#5C4E24] dark:bg-[#3B331B]`}
+      } flex-col items-center gap-1 rounded-lg border border-[#EDDFA9] bg-[#FDF6D9] px-4 py-3 text-center shadow-sm shadow-black/10 dark:border-[#4E4630] dark:bg-[#332E20]`}
     >
       <span className={`text-xs text-[#5A4A1E]/70 dark:text-[#E9DBA0]/70 ${caveat.className}`}>{label}</span>
       {editable ? (

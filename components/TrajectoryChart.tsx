@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import type { Goal, TrajectoryPoint } from "@/lib/data";
+import { FAINT, MUTED } from "@/lib/theme";
 
 const WIDTH = 640;
-const HEIGHT = 260;
+const HEIGHT = 320;
 const PADDING = { top: 16, right: 16, bottom: 28, left: 40 };
+
+const FAINT_FILL = "fill-[#8A939B] dark:fill-[#67727C]";
+const MUTED_FILL = "fill-[#67727C] dark:fill-[#9AA6B0]";
+const INK_FILL = "fill-[#26313D] dark:fill-[#EDF1F4]";
 
 export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; trajectory: TrajectoryPoint[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -38,15 +43,15 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
   const hovered = hoverIndex !== null ? trajectory[hoverIndex] : null;
 
   return (
-    <div className="[--series-actual:#2a78d6] [--series-ideal:#eb6834] dark:[--series-actual:#3987e5] dark:[--series-ideal:#d95926]">
-      <div className="mb-3 flex items-center gap-4 text-xs font-medium text-zinc-600 dark:text-zinc-300">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-4 rounded-full bg-(--series-actual)" />
+    <div className="[--chart-bg:#fff] [--series-actual:#33465C] [--series-ideal:#7C9270] dark:[--chart-bg:#1E2630] dark:[--series-actual:#6E8CB0] dark:[--series-ideal:#A9BFA0]">
+      <div className={`mb-4 flex items-center gap-5 text-sm font-medium ${MUTED}`}>
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-0.5 w-5 rounded-full bg-(--series-actual)" />
           Actual
         </span>
-        <span className="flex items-center gap-1.5">
-          <svg width="16" height="2" className="overflow-visible">
-            <line x1="0" y1="1" x2="16" y2="1" stroke="var(--series-ideal)" strokeWidth="2" strokeDasharray="3 3" />
+        <span className="flex items-center gap-2">
+          <svg width="20" height="2" className="overflow-visible">
+            <line x1="0" y1="1" x2="20" y2="1" stroke="var(--series-ideal)" strokeWidth="2" strokeDasharray="3 3" />
           </svg>
           Target pace
         </span>
@@ -67,14 +72,14 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
               y2={yAt(tick)}
               stroke="currentColor"
               strokeWidth="1"
-              className="text-zinc-200 dark:text-zinc-800"
+              className="text-[#33465C]/10 dark:text-[#6E8CB0]/15"
             />
             <text
               x={PADDING.left - 8}
               y={yAt(tick)}
               textAnchor="end"
               dominantBaseline="middle"
-              className="fill-zinc-400 dark:fill-zinc-500 text-[10px]"
+              className={`${FAINT_FILL} text-[11px]`}
             >
               {Math.round(tick * 10) / 10}
             </text>
@@ -84,24 +89,34 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
         <path d={idealPath} fill="none" stroke="var(--series-ideal)" strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
         <path d={actualPath} fill="none" stroke="var(--series-actual)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-        <circle cx={xAt(trajectory.length - 1)} cy={yAt(goalPoint.ideal)} r="4" fill="var(--series-ideal)" stroke="var(--color-background,#fff)" strokeWidth="2" />
+        <circle
+          cx={xAt(trajectory.length - 1)}
+          cy={yAt(goalPoint.ideal)}
+          r="5"
+          fill="var(--series-ideal)"
+          stroke="var(--chart-bg)"
+          strokeWidth="2"
+        />
         <text
           x={xAt(trajectory.length - 1) - 6}
-          y={yAt(goalPoint.ideal) - 10}
+          y={yAt(goalPoint.ideal) - 12}
           textAnchor="end"
-          className="fill-zinc-600 dark:fill-zinc-300 text-[10px] font-medium"
+          className={`${MUTED_FILL} text-[11px] font-medium`}
         >
           Goal: {goalPoint.ideal} {goal.unit}
         </text>
 
         {lastActual && (
           <>
-            <circle cx={xAt(lastActual.i)} cy={yAt(lastActual.value)} r="4" fill="var(--series-actual)" stroke="var(--color-background,#fff)" strokeWidth="2" />
-            <text
-              x={xAt(lastActual.i) + 8}
-              y={yAt(lastActual.value) + 4}
-              className="fill-zinc-700 dark:fill-zinc-200 text-[10px] font-semibold"
-            >
+            <circle
+              cx={xAt(lastActual.i)}
+              cy={yAt(lastActual.value)}
+              r="5"
+              fill="var(--series-actual)"
+              stroke="var(--chart-bg)"
+              strokeWidth="2"
+            />
+            <text x={xAt(lastActual.i) + 9} y={yAt(lastActual.value) + 4} className={`${INK_FILL} text-[11px] font-semibold`}>
               {lastActual.value} {goal.unit} today
             </text>
           </>
@@ -128,20 +143,22 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
             y2={HEIGHT - PADDING.bottom}
             stroke="currentColor"
             strokeWidth="1"
-            className="text-zinc-300 dark:text-zinc-700"
+            className="text-[#33465C]/20 dark:text-[#6E8CB0]/25"
           />
         )}
       </svg>
 
-      <div className="mt-1 flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
+      <div className={`mt-2 flex justify-between text-xs ${FAINT}`}>
         <span>{trajectory[0].label}</span>
         <span>{lastActual ? trajectory[lastActual.i].label : ""}</span>
         <span>{trajectory[trajectory.length - 1].label}</span>
       </div>
 
       {hovered && (
-        <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-          <span className="font-medium text-zinc-800 dark:text-zinc-100">{hovered.label}</span>
+        <div
+          className={`mt-4 rounded-lg border border-[#33465C]/15 bg-[#F4F6F7] px-4 py-3 text-sm dark:border-[#6E8CB0]/20 dark:bg-[#141A21] ${MUTED}`}
+        >
+          <span className="font-semibold text-[#26313D] dark:text-[#EDF1F4]">{hovered.label}</span>
           {" — "}
           target pace {hovered.ideal} {goal.unit}
           {hovered.actual !== null ? `, actual ${hovered.actual} ${goal.unit}` : ""}

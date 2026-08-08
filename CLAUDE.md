@@ -5,9 +5,10 @@ A personal-training agent that takes a real goal, builds the plan to reach it, w
 
 ## Standing rules
 - Keep everything as simple as possible; build nothing I haven't asked for.
-- Ask questions for clarifications and details
 - After each change, explain what changed in plain English.
 - Ask before touching anything outside this project folder.
+- If a request is ambiguous, could apply to multiple components, needs a design detail I don't have (color, spacing, copy), or would touch shared components used elsewhere — ask one specific question before implementing.
+- Always ask questions to clarify design details
 
 ## What's placeholder
 - Onboarding, plan, log, progress, and coach screens are built and wired to local app state — no backend or database yet.

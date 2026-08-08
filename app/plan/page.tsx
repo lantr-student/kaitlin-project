@@ -5,18 +5,29 @@ import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { Checkbox } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
+import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
-import { WEEKLY_PLAN, TODAYS_WORKOUT, type PlanDay } from "@/lib/data";
-import { quicksand, caveat, INK, MUTED, FAINT } from "@/lib/theme";
+import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
+import { quicksand, caveat, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const todayIndex = WEEKLY_PLAN.findIndex((d) => d.day === TODAYS_WORKOUT.day);
 
+// Colors for the homepage metric rings — distinct from the rest of the app's navy/sage palette.
+const RING_WEEKLY = "stroke-[#4A6FA5] dark:stroke-[#8CAAD9]";
+const RING_STREAK = "stroke-[#C1622E] dark:stroke-[#E0916A]";
+const RING_GOAL = "stroke-[#7A5DA8] dark:stroke-[#B29BD9]";
+
 export default function Plan() {
-  const { onboarding, exerciseDone, toggleExercise } = useAppState();
+  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity } = useAppState();
   const { goal } = onboarding;
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const selectedDay = WEEKLY_PLAN[selectedDayIndex];
   const isSelectedToday = selectedDayIndex === todayIndex;
+
+  const weeklyPercent = activity.plannedThisWeek ? (activity.workoutsThisWeek / activity.plannedThisWeek) * 100 : 0;
+  const streakPercent = Math.min(activity.weekStreak / 4, 1) * 100;
+  const goalPercent = goalProgressPercent(goal);
+  const goalShortName = goal.metric.split(" ")[0].toLowerCase();
 
   const daysBeforeSelected = WEEKLY_PLAN.slice(0, selectedDayIndex);
   const daysAfterSelected = WEEKLY_PLAN.slice(selectedDayIndex + 1);
@@ -24,14 +35,34 @@ export default function Plan() {
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-8 pt-8 sm:px-6 sm:pt-14">
-        <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>This week&apos;s plan</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#26313D] sm:text-4xl dark:text-[#EDF1F4]">
-          {onboarding.daysPerWeek}-day split, built for {onboarding.goalType.toLowerCase()}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-[#67727C] sm:text-base dark:text-[#9AA6B0]">
-          Working toward {goal.metric.toLowerCase()}: {goal.currentValue} → {goal.targetValue} {goal.unit} by{" "}
-          {new Date(`${goal.targetDate}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+          <div>
+            <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>This week&apos;s plan</p>
+            <h1 className="mt-1 text-3xl font-bold text-[#26313D] sm:text-4xl dark:text-[#EDF1F4]">
+              {onboarding.daysPerWeek}-day split to {onboarding.goalType.toLowerCase()}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-[#67727C] sm:text-base dark:text-[#9AA6B0]">
+              Working toward {goal.metric.toLowerCase()}: {goal.currentValue} → {goal.targetValue} {goal.unit} by{" "}
+              {new Date(`${goal.targetDate}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}
+            </p>
+          </div>
+
+          <div className="flex flex-none gap-5">
+            <MetricRing
+              percentage={weeklyPercent}
+              color={RING_WEEKLY}
+              value={`${activity.workoutsThisWeek}/${activity.plannedThisWeek}`}
+              label="This week"
+            />
+            <MetricRing
+              percentage={streakPercent}
+              color={RING_STREAK}
+              value={String(activity.weekStreak)}
+              label="Wk streak"
+            />
+            <MetricRing percentage={goalPercent} color={RING_GOAL} value={`${goalPercent}%`} label={`To ${goalShortName}`} />
+          </div>
+        </div>
 
         <div className="mt-8 flex flex-1 flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-center">
           <div className="flex flex-wrap justify-center gap-4 sm:w-56 sm:flex-none sm:flex-col sm:justify-center">
@@ -52,6 +83,7 @@ export default function Plan() {
             isToday={isSelectedToday}
             checked={exerciseDone}
             onToggle={toggleExercise}
+            workoutStarted={workoutStarted}
           />
 
           <div className="flex flex-wrap justify-center gap-4 sm:w-56 sm:flex-none sm:flex-col sm:justify-center">
@@ -75,16 +107,39 @@ export default function Plan() {
   );
 }
 
+function MetricRing({
+  percentage,
+  color,
+  value,
+  label,
+}: {
+  percentage: number;
+  color: string;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="flex w-16 flex-none flex-col items-center gap-1">
+      <ProgressRing percentage={percentage} color={color}>
+        <span className={`text-[10px] font-bold ${INK}`}>{value}</span>
+      </ProgressRing>
+      <span className={`text-center text-[10px] leading-tight ${FAINT}`}>{label}</span>
+    </div>
+  );
+}
+
 function DayCard({
   day,
   isToday,
   checked,
   onToggle,
+  workoutStarted,
 }: {
   day: PlanDay;
   isToday: boolean;
   checked: boolean[];
   onToggle: (index: number) => void;
+  workoutStarted: boolean;
 }) {
   return (
     <div className="flex flex-1 flex-col rounded-3xl border-2 border-[#33465C] bg-white p-6 shadow-md shadow-black/10 sm:w-[26rem] sm:flex-none sm:px-6 sm:py-8 dark:border-[#6E8CB0] dark:bg-[#1E2630] dark:shadow-black/30">
@@ -134,11 +189,8 @@ function DayCard({
       <div className="flex-1" />
 
       {isToday && (
-        <Link
-          href="/log"
-          className="flex items-center justify-between rounded-full bg-[#33465C] px-6 py-3.5 text-sm font-bold text-[#F4F6F7] transition-colors hover:bg-[#263548] dark:bg-[#6E8CB0] dark:text-[#141A21] dark:hover:bg-[#86A3C4]"
-        >
-          <span>Start workout</span>
+        <Link href="/log" className={PRIMARY_BUTTON}>
+          <span>{workoutStarted ? "Continue workout" : "Start workout"}</span>
           <span aria-hidden>→</span>
         </Link>
       )}

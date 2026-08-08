@@ -14,6 +14,7 @@ import {
   deriveGoalStartValue,
   type OnboardingAnswers,
 } from "@/lib/data";
+import { PRIMARY_BUTTON } from "@/lib/theme";
 
 const quicksand = Quicksand({ subsets: ["latin"], weight: ["500", "600", "700"] });
 const caveat = Caveat({ subsets: ["latin"], weight: ["600", "700"] });
@@ -28,8 +29,6 @@ const CARD_ACTIVE =
 const DAY_ACTIVE = "bg-[#33465C] text-[#F4F6F7] shadow-md shadow-[#33465C]/25 dark:bg-[#6E8CB0] dark:text-[#141A21]";
 const INPUT_CLASS =
   "w-full rounded-xl bg-white px-3 py-3 text-sm text-[#26313D] shadow-sm shadow-black/5 focus:outline-none focus:ring-2 focus:ring-[#33465C]/30 dark:bg-[#242C36] dark:text-[#EDF1F4] dark:focus:ring-[#6E8CB0]/30";
-const PRIMARY_BUTTON =
-  "flex-1 rounded-full bg-[#33465C] py-3.5 text-base font-semibold text-[#F4F6F7] shadow-md shadow-[#33465C]/25 transition-colors hover:bg-[#263548] dark:bg-[#6E8CB0] dark:text-[#141A21] dark:hover:bg-[#86A3C4]";
 
 export default function Onboarding() {
   const router = useRouter();
@@ -227,13 +226,15 @@ export default function Onboarding() {
               type="button"
               disabled={!canAdvance()}
               onClick={() => setStep((s) => Math.min(s + 1, lastStep))}
-              className={`${PRIMARY_BUTTON} disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`${PRIMARY_BUTTON} flex-1 disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Continue
+              <span>Continue</span>
+              <span aria-hidden>→</span>
             </button>
           ) : (
-            <button type="button" onClick={handleFinish} className={PRIMARY_BUTTON}>
-              Build my plan
+            <button type="button" onClick={handleFinish} className={`${PRIMARY_BUTTON} flex-1`}>
+              <span>Build my plan</span>
+              <span aria-hidden>→</span>
             </button>
           )}
         </div>

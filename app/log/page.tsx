@@ -5,11 +5,16 @@ import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
+import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
 import { TODAYS_WORKOUT } from "@/lib/data";
-import { quicksand, caveat, INK, MUTED, FAINT } from "@/lib/theme";
+import { quicksand, caveat, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const lastRow = Math.ceil(TODAYS_WORKOUT.exercises.length / 2) - 1;
+
+// The set-completion rings turn sage green once done, navy while still in progress.
+const RING_COLOR_DONE = "stroke-[#7C9270] dark:stroke-[#A9BFA0]";
+const RING_COLOR_ACTIVE = "stroke-[#33465C] dark:stroke-[#6E8CB0]";
 
 export default function LogWorkout() {
   const { setProgress, toggleSet, updateSetField, exerciseDone } = useAppState();
@@ -41,8 +46,8 @@ export default function LogWorkout() {
                     <ProgressRing
                       size={36}
                       strokeWidth={4}
-                      progress={sets.length ? doneCount / sets.length : 0}
-                      complete={complete}
+                      percentage={sets.length ? (doneCount / sets.length) * 100 : 0}
+                      color={complete ? RING_COLOR_DONE : RING_COLOR_ACTIVE}
                     >
                       {complete ? (
                         <CheckIcon className="h-3.5 w-3.5 text-[#7C9270] dark:text-[#A9BFA0]" />
@@ -59,7 +64,12 @@ export default function LogWorkout() {
             </div>
 
             <div className="flex flex-none items-center gap-2.5 border-l border-[#33465C]/10 pl-4 dark:border-[#6E8CB0]/15">
-              <ProgressRing size={54} strokeWidth={5} progress={overallProgress} complete={workoutComplete}>
+              <ProgressRing
+                size={54}
+                strokeWidth={5}
+                percentage={overallProgress * 100}
+                color={workoutComplete ? RING_COLOR_DONE : RING_COLOR_ACTIVE}
+              >
                 {workoutComplete ? (
                   <CheckIcon className="h-5 w-5 text-[#7C9270] dark:text-[#A9BFA0]" />
                 ) : (
@@ -125,64 +135,14 @@ export default function LogWorkout() {
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <StickyNote label="Coach's notes" text={TODAYS_WORKOUT.coachNote} />
 
-            <Link
-              href="/coach"
-              className="flex flex-none items-center rounded-full bg-[#33465C] px-7 py-4 text-base font-bold text-[#F4F6F7] transition-colors hover:bg-[#263548] dark:bg-[#6E8CB0] dark:text-[#141A21] dark:hover:bg-[#86A3C4]"
-            >
-              Ask coach
+            <Link href="/coach" className={`${PRIMARY_BUTTON} flex-none`}>
+              <span>Ask coach</span>
+              <span aria-hidden>→</span>
             </Link>
           </div>
         </div>
       </main>
       <BottomNav />
-    </div>
-  );
-}
-
-function ProgressRing({
-  size,
-  strokeWidth,
-  progress,
-  complete,
-  children,
-}: {
-  size: number;
-  strokeWidth: number;
-  progress: number;
-  complete: boolean;
-  children: ReactNode;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clamped = Math.min(Math.max(progress, 0), 1);
-  const offset = circumference * (1 - clamped);
-
-  return (
-    <div className="relative flex-none" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          strokeWidth={strokeWidth}
-          fill="none"
-          className="stroke-[#33465C]/10 dark:stroke-[#6E8CB0]/15"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className={`transition-[stroke-dashoffset] duration-300 ${
-            complete ? "stroke-[#7C9270] dark:stroke-[#A9BFA0]" : "stroke-[#33465C] dark:stroke-[#6E8CB0]"
-          }`}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
     </div>
   );
 }

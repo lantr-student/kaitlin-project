@@ -14,8 +14,16 @@ type AppState = {
   updateSetField: (exerciseIndex: number, setIndex: number, field: "reps" | "weight", value: string) => void;
   exerciseDone: boolean[];
   toggleExercise: (exerciseIndex: number) => void;
+  workoutStarted: boolean;
   workoutCompleted: boolean;
-  activity: { streakDays: number; workoutsThisMonth: number; plannedThisMonth: number };
+  activity: {
+    streakDays: number;
+    weekStreak: number;
+    workoutsThisWeek: number;
+    plannedThisWeek: number;
+    workoutsThisMonth: number;
+    plannedThisMonth: number;
+  };
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -40,6 +48,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [setProgress]
   );
   const workoutCompleted = exerciseDone.length > 0 && exerciseDone.every(Boolean);
+  const workoutStarted = setProgress.some((sets) => sets.some((set) => set.done));
 
   const value = useMemo<AppState>(
     () => ({
@@ -76,14 +85,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           )
         );
       },
+      workoutStarted,
       workoutCompleted,
       activity: {
         streakDays: PROGRESS_ACTIVITY.streakDays + (workoutCompleted ? 1 : 0),
+        weekStreak: PROGRESS_ACTIVITY.weekStreak,
+        workoutsThisWeek: PROGRESS_ACTIVITY.workoutsThisWeek + (workoutCompleted ? 1 : 0),
+        plannedThisWeek: PROGRESS_ACTIVITY.plannedThisWeek,
         workoutsThisMonth: PROGRESS_ACTIVITY.workoutsThisMonth + (workoutCompleted ? 1 : 0),
         plannedThisMonth: PROGRESS_ACTIVITY.plannedThisMonth,
       },
     }),
-    [onboarding, hasOnboarded, setProgress, exerciseDone, workoutCompleted]
+    [onboarding, hasOnboarded, setProgress, exerciseDone, workoutStarted, workoutCompleted]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
