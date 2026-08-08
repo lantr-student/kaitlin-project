@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Quicksand } from "next/font/google";
+import { DumbbellIcon } from "@/components/icons";
 
 const quicksand = Quicksand({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
@@ -35,7 +36,7 @@ export default function Landing() {
         <div key={i} aria-hidden className={`pointer-events-none absolute ${shape}`} />
       ))}
       {DUMBBELL_SHAPES.map((shape, i) => (
-        <Dumbbell key={i} className={shape} />
+        <DumbbellIcon key={i} className={`pointer-events-none absolute ${shape}`} />
       ))}
 
       <div className={`relative mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center ${quicksand.className}`}>
@@ -71,21 +72,5 @@ export default function Landing() {
         </p>
       </div>
     </main>
-  );
-}
-
-function Dumbbell({ className }: { className: string }) {
-  return (
-    <svg
-      viewBox="0 0 64 32"
-      aria-hidden
-      className={`pointer-events-none absolute fill-[#33465C] dark:fill-[#9AA6B0] ${className}`}
-    >
-      <rect x="6" y="6" width="7" height="20" rx="3" />
-      <rect x="14" y="9" width="5" height="14" rx="2" />
-      <rect x="22" y="14" width="20" height="4" rx="2" />
-      <rect x="45" y="9" width="5" height="14" rx="2" />
-      <rect x="51" y="6" width="7" height="20" rx="3" />
-    </svg>
   );
 }

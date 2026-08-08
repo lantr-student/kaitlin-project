@@ -8,13 +8,9 @@ import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
 import { TODAYS_WORKOUT } from "@/lib/data";
-import { quicksand, caveat, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const lastRow = Math.ceil(TODAYS_WORKOUT.exercises.length / 2) - 1;
-
-// The set-completion rings turn sage green once done, navy while still in progress.
-const RING_COLOR_DONE = "stroke-[#7C9270] dark:stroke-[#A9BFA0]";
-const RING_COLOR_ACTIVE = "stroke-[#33465C] dark:stroke-[#6E8CB0]";
 
 export default function LogWorkout() {
   const { setProgress, toggleSet, updateSetField, exerciseDone } = useAppState();
@@ -47,10 +43,10 @@ export default function LogWorkout() {
                       size={36}
                       strokeWidth={4}
                       percentage={sets.length ? (doneCount / sets.length) * 100 : 0}
-                      color={complete ? RING_COLOR_DONE : RING_COLOR_ACTIVE}
+                      color={complete ? DONE_STROKE : ACTIVE_STROKE}
                     >
                       {complete ? (
-                        <CheckIcon className="h-3.5 w-3.5 text-[#7C9270] dark:text-[#A9BFA0]" />
+                        <CheckIcon className={`h-3.5 w-3.5 ${DONE_TEXT}`} />
                       ) : (
                         <span className={`text-[10px] font-semibold ${MUTED}`}>
                           {doneCount}/{sets.length}
@@ -68,10 +64,10 @@ export default function LogWorkout() {
                 size={54}
                 strokeWidth={5}
                 percentage={overallProgress * 100}
-                color={workoutComplete ? RING_COLOR_DONE : RING_COLOR_ACTIVE}
+                color={workoutComplete ? DONE_STROKE : ACTIVE_STROKE}
               >
                 {workoutComplete ? (
-                  <CheckIcon className="h-5 w-5 text-[#7C9270] dark:text-[#A9BFA0]" />
+                  <CheckIcon className={`h-5 w-5 ${DONE_TEXT}`} />
                 ) : (
                   <span className={`text-sm font-bold ${INK}`}>{Math.round(overallProgress * 100)}%</span>
                 )}

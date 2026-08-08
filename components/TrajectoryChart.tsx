@@ -43,7 +43,7 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
   const hovered = hoverIndex !== null ? trajectory[hoverIndex] : null;
 
   return (
-    <div className="[--chart-bg:#fff] [--series-actual:#33465C] [--series-ideal:#7C9270] dark:[--chart-bg:#1E2630] dark:[--series-actual:#6E8CB0] dark:[--series-ideal:#A9BFA0]">
+    <div className="[--chart-bg:#fff] [--series-actual:#7C9270] [--series-ideal:#33465C] dark:[--chart-bg:#1E2630] dark:[--series-actual:#A9BFA0] dark:[--series-ideal:#6E8CB0]">
       <div className={`mb-4 flex items-center gap-5 text-sm font-medium ${MUTED}`}>
         <span className="flex items-center gap-2">
           <span className="inline-block h-0.5 w-5 rounded-full bg-(--series-actual)" />

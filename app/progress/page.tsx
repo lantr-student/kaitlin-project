@@ -1,11 +1,14 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
+import { CheckIcon } from "@/components/Checkbox";
+import { DumbbellIcon, FireIcon } from "@/components/icons";
 import TrajectoryChart from "@/components/TrajectoryChart";
 import { useAppState } from "@/components/AppStateProvider";
-import { buildTrajectory, computeProgressStats } from "@/lib/data";
-import { quicksand, caveat, INK, MUTED, FAINT } from "@/lib/theme";
+import { buildTrajectory, computeProgressStats, goalProgressPercent } from "@/lib/data";
+import { quicksand, caveat, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 export default function Progress() {
   const { onboarding, activity, workoutCompleted } = useAppState();
@@ -13,6 +16,7 @@ export default function Progress() {
 
   const trajectory = buildTrajectory(goal);
   const stats = computeProgressStats(goal, trajectory);
+  const goalPercent = goalProgressPercent(goal);
 
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
@@ -49,18 +53,21 @@ export default function Progress() {
         </section>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Day streak" value={String(activity.streakDays)} />
-          <StatTile label="This month" value={`${activity.workoutsThisMonth}/${activity.plannedThisMonth}`} />
-          <StatTile label="Weeks left" value={String(stats.weeksRemaining)} />
+          <StatTile icon={<FireIcon className="h-6 w-6" />} label="Day streak" value={String(activity.streakDays)} />
+          <StatTile
+            icon={<DumbbellIcon className="h-4 w-8" />}
+            label="Goal progress"
+            value={`${goalPercent}%`}
+          />
+          <StatTile
+            icon={<CheckIcon className={`h-5 w-5 ${DONE_TEXT}`} />}
+            label="Weeks left"
+            value={String(stats.weeksRemaining)}
+          />
 
-          <Link
-            href="/coach"
-            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-[#33465C] px-3 py-4 text-center transition-colors hover:bg-[#263548] dark:bg-[#6E8CB0] dark:hover:bg-[#86A3C4]"
-          >
-            <span className="text-base font-bold text-[#F4F6F7] dark:text-[#141A21]">Talk to coach</span>
-            <span aria-hidden className="text-lg text-[#F4F6F7] dark:text-[#141A21]">
-              →
-            </span>
+          <Link href="/coach" className={`${PRIMARY_BUTTON} self-center justify-self-center`}>
+            <span>Talk to coach</span>
+            <span aria-hidden>→</span>
           </Link>
         </div>
       </main>
@@ -69,10 +76,13 @@ export default function Progress() {
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({ icon, label, value }: { icon?: ReactNode; label: string; value: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-[#33465C]/15 bg-white px-3 py-4 text-center dark:border-[#6E8CB0]/20 dark:bg-[#1E2630]">
-      <div className={`text-3xl font-bold tabular-nums ${INK}`}>{value}</div>
+      <div className="flex items-center justify-center gap-1.5">
+        {icon}
+        <span className={`text-3xl font-bold tabular-nums ${INK}`}>{value}</span>
+      </div>
       <div className={`text-xs ${FAINT}`}>{label}</div>
     </div>
   );

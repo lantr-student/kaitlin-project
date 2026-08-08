@@ -1,36 +1,140 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
-import { Checkbox } from "@/components/Checkbox";
+import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
 import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
-import { quicksand, caveat, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const todayIndex = WEEKLY_PLAN.findIndex((d) => d.day === TODAYS_WORKOUT.day);
 
+// Hardcoded until accounts/auth exist.
+const FIRST_NAME = "Kaitlin";
+
+function timeOfDayGreeting(hour: number): string {
+  if (hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  return "evening";
+}
+
+// Past/future phrasing that names the workout explicitly — only used when that day isn't a rest day.
+const PAST_WORKOUT_HEADLINES: ((day: string) => string)[] = [
+  (day) => `Looking back at ${day}'s workout`,
+  (day) => `${day}'s workout`,
+  (day) => `Here's what you did ${day}`,
+  (day) => `Your ${day} workout`,
+  (day) => `Let's look at ${day}`,
+];
+const FUTURE_WORKOUT_HEADLINES: ((day: string) => string)[] = [
+  (day) => `Up next: ${day}'s workout`,
+  () => `Here's what's next`,
+  (day) => `${day}'s workout is ready`,
+  (day) => `Ready for ${day}?`,
+  (day) => `Coming up ${day}`,
+  (day) => `${day}, let's go`,
+  () => `Your next workout`,
+];
+// Generic day phrasing (no mention of "workout") for past/future days that are rest days —
+// derived from the arrays above so the two stay in sync automatically.
+const NAMES_WORKOUT = (template: (day: string) => string) => template("day").toLowerCase().includes("workout");
+const PAST_REST_HEADLINES = PAST_WORKOUT_HEADLINES.filter((t) => !NAMES_WORKOUT(t));
+const FUTURE_REST_HEADLINES = FUTURE_WORKOUT_HEADLINES.filter((t) => !NAMES_WORKOUT(t));
+const TODAY_REST_HEADLINES = [
+  "Today's a rest day",
+  "Take it easy today",
+  "Recovery day",
+  "You've earned a rest day",
+  "No workout today — recover well.",
+];
+const TODAY_WORKOUT_HEADLINES = [
+  "Ready to get started?",
+  "Ready for today's workout?",
+  "Ready when you are.",
+  "Time to train.",
+  "Let's make today count.",
+  "Let's get stronger today.",
+  "Up for a workout?",
+];
+
+type HeadlinePicks = {
+  pastWorkout: number;
+  pastRest: number;
+  futureWorkout: number;
+  futureRest: number;
+  todayRest: number;
+  todayWorkout: number;
+};
+
+const INITIAL_HEADLINE_PICKS: HeadlinePicks = {
+  pastWorkout: 0,
+  pastRest: 0,
+  futureWorkout: 0,
+  futureRest: 0,
+  todayRest: 0,
+  todayWorkout: 0,
+};
+
+function randomHeadlinePicks(): HeadlinePicks {
+  return {
+    pastWorkout: Math.floor(Math.random() * PAST_WORKOUT_HEADLINES.length),
+    pastRest: Math.floor(Math.random() * PAST_REST_HEADLINES.length),
+    futureWorkout: Math.floor(Math.random() * FUTURE_WORKOUT_HEADLINES.length),
+    futureRest: Math.floor(Math.random() * FUTURE_REST_HEADLINES.length),
+    todayRest: Math.floor(Math.random() * TODAY_REST_HEADLINES.length),
+    todayWorkout: Math.floor(Math.random() * TODAY_WORKOUT_HEADLINES.length),
+  };
+}
+
+function headlineFor(day: PlanDay, dayIndex: number, todayIdx: number, picks: HeadlinePicks): string {
+  if (dayIndex === todayIdx) {
+    return day.isRestDay ? TODAY_REST_HEADLINES[picks.todayRest] : TODAY_WORKOUT_HEADLINES[picks.todayWorkout];
+  }
+  if (dayIndex < todayIdx) {
+    return day.isRestDay
+      ? PAST_REST_HEADLINES[picks.pastRest](day.day)
+      : PAST_WORKOUT_HEADLINES[picks.pastWorkout](day.day);
+  }
+  return day.isRestDay
+    ? FUTURE_REST_HEADLINES[picks.futureRest](day.day)
+    : FUTURE_WORKOUT_HEADLINES[picks.futureWorkout](day.day);
+}
+
 // Colors for the homepage metric rings — distinct from the rest of the app's navy/sage palette.
 const RING_WEEKLY = "stroke-[#4A6FA5] dark:stroke-[#8CAAD9]";
-const RING_STREAK = "stroke-[#C1622E] dark:stroke-[#E0916A]";
 const RING_GOAL = "stroke-[#7A5DA8] dark:stroke-[#B29BD9]";
 
 export default function Plan() {
-  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity } = useAppState();
+  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress } = useAppState();
   const { goal } = onboarding;
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
+  const [headlinePicks, setHeadlinePicks] = useState<HeadlinePicks>(INITIAL_HEADLINE_PICKS);
   const selectedDay = WEEKLY_PLAN[selectedDayIndex];
   const isSelectedToday = selectedDayIndex === todayIndex;
 
   const weeklyPercent = activity.plannedThisWeek ? (activity.workoutsThisWeek / activity.plannedThisWeek) * 100 : 0;
-  const streakPercent = Math.min(activity.weekStreak / 4, 1) * 100;
+  const totalSets = setProgress.reduce((sum, sets) => sum + sets.length, 0);
+  const doneSets = setProgress.reduce((sum, sets) => sum + sets.filter((s) => s.done).length, 0);
+  const workoutPercent = totalSets ? (doneSets / totalSets) * 100 : 0;
+  const workoutComplete = totalSets > 0 && doneSets === totalSets;
   const goalPercent = goalProgressPercent(goal);
   const goalShortName = goal.metric.split(" ")[0].toLowerCase();
 
   const daysBeforeSelected = WEEKLY_PLAN.slice(0, selectedDayIndex);
   const daysAfterSelected = WEEKLY_PLAN.slice(selectedDayIndex + 1);
+
+  // Re-rolled once per page load (not per day-card click) — starts at a fixed pick so
+  // server and client render the same thing before this runs, then randomizes on mount.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only re-roll to avoid an SSR/client hydration mismatch from Math.random()
+    setHeadlinePicks(randomHeadlinePicks());
+  }, []);
+
+  const greeting = timeOfDayGreeting(new Date().getHours());
+  const headline = headlineFor(selectedDay, selectedDayIndex, todayIndex, headlinePicks);
 
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
@@ -39,28 +143,36 @@ export default function Plan() {
           <div>
             <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>This week&apos;s plan</p>
             <h1 className="mt-1 text-3xl font-bold text-[#26313D] sm:text-4xl dark:text-[#EDF1F4]">
-              {onboarding.daysPerWeek}-day split to {onboarding.goalType.toLowerCase()}
+              Good {greeting}, {FIRST_NAME}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-[#67727C] sm:text-base dark:text-[#9AA6B0]">
-              Working toward {goal.metric.toLowerCase()}: {goal.currentValue} → {goal.targetValue} {goal.unit} by{" "}
-              {new Date(`${goal.targetDate}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}
-            </p>
+            <p className="mt-1 text-xl font-bold text-[#26313D] sm:text-2xl dark:text-[#EDF1F4]">{headline}</p>
           </div>
 
-          <div className="flex flex-none gap-5">
+          <div className="flex flex-none gap-8 sm:mt-8">
             <MetricRing
               percentage={weeklyPercent}
               color={RING_WEEKLY}
               value={`${activity.workoutsThisWeek}/${activity.plannedThisWeek}`}
-              label="This week"
+              label="days this week"
             />
             <MetricRing
-              percentage={streakPercent}
-              color={RING_STREAK}
-              value={String(activity.weekStreak)}
-              label="Wk streak"
+              percentage={workoutPercent}
+              color={workoutComplete ? DONE_STROKE : ACTIVE_STROKE}
+              value={
+                workoutComplete ? (
+                  <CheckIcon className={`h-3.5 w-3.5 ${DONE_TEXT}`} />
+                ) : (
+                  `${Math.round(workoutPercent)}%`
+                )
+              }
+              label="today's workout"
             />
-            <MetricRing percentage={goalPercent} color={RING_GOAL} value={`${goalPercent}%`} label={`To ${goalShortName}`} />
+            <MetricRing
+              percentage={goalPercent}
+              color={RING_GOAL}
+              value={`${goalPercent}%`}
+              label={`to ${goalShortName} goal`}
+            />
           </div>
         </div>
 
@@ -115,15 +227,15 @@ function MetricRing({
 }: {
   percentage: number;
   color: string;
-  value: string;
+  value: ReactNode;
   label: string;
 }) {
   return (
-    <div className="flex w-16 flex-none flex-col items-center gap-1">
-      <ProgressRing percentage={percentage} color={color}>
-        <span className={`text-[10px] font-bold ${INK}`}>{value}</span>
+    <div className="flex flex-none flex-col items-center gap-1.5">
+      <ProgressRing percentage={percentage} color={color} size={60} strokeWidth={5}>
+        <span className={`text-xs font-bold ${INK}`}>{value}</span>
       </ProgressRing>
-      <span className={`text-center text-[10px] leading-tight ${FAINT}`}>{label}</span>
+      <span className={`whitespace-nowrap text-center text-xs leading-tight ${FAINT}`}>{label}</span>
     </div>
   );
 }
