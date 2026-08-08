@@ -21,8 +21,8 @@ export default function LogWorkout() {
   const workoutComplete = totalSets > 0 && doneSets === totalSets;
 
   return (
-    <div className={`flex h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col overflow-hidden px-4 pt-6 sm:px-6 sm:pt-10">
+    <div className={`flex min-h-dvh flex-col sm:h-dvh bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pt-6 sm:overflow-hidden sm:px-6 sm:pt-10">
         <div className="flex flex-none items-center justify-between gap-3">
           <div className="flex-none">
             <p className={`text-lg leading-none text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>
@@ -82,7 +82,7 @@ export default function LogWorkout() {
           </div>
         </div>
 
-        <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 pb-4 sm:grid-cols-2 sm:grid-rows-3 sm:gap-4 sm:pb-6">
+        <div className="mt-3 grid grid-cols-1 gap-3 pb-4 sm:min-h-0 sm:flex-1 sm:grid-cols-2 sm:grid-rows-3 sm:gap-4 sm:pb-6">
           {TODAYS_WORKOUT.exercises.map((exercise, exerciseIndex) => {
             const isLastRow = Math.floor(exerciseIndex / 2) === lastRow;
             const openLeft = exerciseIndex % 2 === 1;
