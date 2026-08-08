@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Quicksand } from "next/font/google";
-import { DumbbellIcon } from "@/components/icons";
+import { DumbbellIcon, SmileyFaceIcon } from "@/components/icons";
 
 const quicksand = Quicksand({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
@@ -42,18 +42,8 @@ export default function Landing() {
       <div className={`relative mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center ${quicksand.className}`}>
         <div className="mb-9 flex h-32 w-32 items-center justify-center rounded-[28%] bg-[#33465C] shadow-sm shadow-[#33465C]/20 dark:bg-[#6E8CB0]">
           <svg viewBox="0 0 64 64" className="h-24 w-24" aria-hidden>
-            {/* face */}
             <circle cx="32" cy="32" r="24" className="fill-[#F4F6F7] dark:fill-[#141A21]" />
-            {/* eyes */}
-            <circle cx="24" cy="29" r="3" className="fill-[#33465C] dark:fill-[#6E8CB0]" />
-            <circle cx="40" cy="29" r="3" className="fill-[#33465C] dark:fill-[#6E8CB0]" />
-            {/* smile */}
-            <path
-              d="M21 38 Q32 48 43 38"
-              className="fill-none stroke-[#33465C] dark:stroke-[#6E8CB0]"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
+            <SmileyFaceIcon className="text-[#33465C] dark:text-[#6E8CB0]" />
           </svg>
         </div>
         <h1 className="text-8xl font-bold tracking-tight text-[#26313D] sm:text-9xl dark:text-[#EDF1F4]">Spotter</h1>

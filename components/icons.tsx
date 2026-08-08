@@ -6,6 +6,19 @@ export function FireIcon({ className }: { className?: string }) {
   );
 }
 
+// The Spotter mascot's face — eyes and smile only, pass a text-color class to set their color.
+// Used standalone (its own <svg>) or nested inside a parent <svg viewBox="0 0 64 64"> that draws
+// the head shape behind it, like the landing page's logo tile.
+export function SmileyFaceIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden className={className}>
+      <circle cx="24" cy="29" r="3" className="fill-current" />
+      <circle cx="40" cy="29" r="3" className="fill-current" />
+      <path d="M21 38 Q32 48 43 38" className="fill-none stroke-current" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function DumbbellIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 32" aria-hidden className={`fill-[#33465C] dark:fill-[#9AA6B0] ${className ?? ""}`}>

@@ -40,9 +40,7 @@ export type TrajectoryPoint = {
   isToday?: boolean;
 };
 
-export type CoachTurn =
-  | { from: "coach"; observation: string; reasoning: string; recommendation: string }
-  | { from: "user"; text: string };
+export type CoachTurn = { from: "coach" | "user"; text: string };
 
 export const GOAL_TYPES = [
   "Build strength",
@@ -417,30 +415,26 @@ export function buildCoachTranscript(
   activity: { workoutsThisMonth: number; plannedThisMonth: number } = PROGRESS_ACTIVITY
 ): CoachTurn[] {
   const paceWord = stats.behindPace ? "behind" : "ahead of";
-  const metricLower = goal.metric.toLowerCase();
+  const metricShort = goal.metric.split(" ")[0].toLowerCase();
+  const targetDateStr = new Date(`${goal.targetDate}T00:00:00`).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+  });
 
   return [
     {
       from: "coach",
-      observation: `Your ${metricLower} is at ${stats.actualToday} ${goal.unit} — about ${stats.paceGap} ${goal.unit} ${paceWord} the pace needed to hit ${goal.targetValue} ${goal.unit} by ${new Date(
-        `${goal.targetDate}T00:00:00`
-      ).toLocaleDateString("en-US", { month: "long", day: "numeric" })}.`,
-      reasoning: `Over the last 3 weeks you completed ${activity.workoutsThisMonth} of ${activity.plannedThisMonth} planned sessions this month. The sessions you did complete were solid — the missed ones are the main gap, not your effort on the days you trained.`,
-      recommendation: `Let's add one short 20-minute session this week focused on ${metricLower}, without turning it into a full extra training day.`,
+      text: `You're at ${stats.actualToday} ${goal.unit} on ${metricShort} and ${stats.paceGap} ${goal.unit} ${paceWord} the pace to hit ${goal.targetValue} ${goal.unit} by ${targetDateStr}. Your workouts have been solid, you just need a little more consistency — you've hit ${activity.workoutsThisMonth} of ${activity.plannedThisMonth} sessions this month. Let's add a quick 20-minute ${metricShort} session this week to keep you on track.`,
     },
     { from: "user", text: "That makes sense — I've been busy on Tuesdays. Could we make it shorter?" },
     {
       from: "coach",
-      observation: "Your average logged session this month runs about 52 minutes, and Tuesday has been your tightest weekday window.",
-      reasoning: `A focused 20-minute add-on covers the missing ${metricLower} volume without requiring a full session, which should fit inside a tighter Tuesday window.`,
-      recommendation: "I've trimmed it to 3 exercises, about 20 minutes total — enough to move the needle without crowding your week.",
+      text: "Your sessions have been running about 52 minutes, and Tuesday's your tightest window, so let's trim this one down — three exercises, about 20 minutes total. Enough to move the needle without crowding your week.",
     },
     { from: "user", text: "Sounds good, let's try that." },
     {
       from: "coach",
-      observation: `You're ${stats.paceGap} ${goal.unit} ${paceWord} pace with about ${stats.weeksRemaining} weeks left before your target date.`,
-      reasoning: `At your current rate, closing a gap this size over ${stats.weeksRemaining} weeks just needs a small consistency boost — not a bigger program change.`,
-      recommendation: "Stick with this week's plan plus the new add-on. I'll re-check your trajectory in two weeks and adjust from there.",
+      text: `You're ${stats.paceGap} ${goal.unit} ${paceWord} pace with about ${stats.weeksRemaining} weeks to go — closing a gap that size just takes a little more consistency, not a bigger overhaul. Stick with this week's plan plus the new add-on, and I'll check back in on your trajectory in two weeks.`,
     },
   ];
 }

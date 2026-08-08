@@ -21,7 +21,7 @@ export default function Progress() {
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-8 pt-8 sm:px-6 sm:pt-14">
-        <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>Your goal</p>
+        <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>Your progress</p>
         <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>
           {goal.metric}: {stats.actualToday} → {goal.targetValue} {goal.unit}
         </h1>

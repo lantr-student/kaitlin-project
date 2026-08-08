@@ -1,8 +1,11 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
-import { buildCoachTranscript, buildTrajectory, computeProgressStats } from "@/lib/data";
+import { SmileyFaceIcon } from "@/components/icons";
+import { buildCoachTranscript, buildTrajectory, computeProgressStats, type CoachTurn } from "@/lib/data";
+import { quicksand, caveat, FAINT_BG, FAINT_PLACEHOLDER, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 export default function Coach() {
   const { onboarding, activity } = useAppState();
@@ -10,54 +13,81 @@ export default function Coach() {
 
   const trajectory = buildTrajectory(goal);
   const stats = computeProgressStats(goal, trajectory);
-  const transcript = buildCoachTranscript(goal, stats, activity);
+
+  const [messages, setMessages] = useState<CoachTurn[]>(() => buildCoachTranscript(goal, stats, activity));
+  const [draft, setDraft] = useState("");
+
+  const handleSend = (e: FormEvent) => {
+    e.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+    setMessages((prev) => [...prev, { from: "user", text }]);
+    setDraft("");
+  };
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 pb-8 pt-10 sm:pt-14">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Coach</p>
-        <h1 className="mt-1 text-2xl font-semibold text-zinc-900 sm:text-3xl dark:text-zinc-50">This week&apos;s check-in</h1>
-        <p className="mt-2 text-sm text-zinc-500 sm:text-base dark:text-zinc-400">
-          Every recommendation shows what the coach observed and why — not just what to do.
-        </p>
+    <div className={`flex h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-6 pt-10 sm:pt-14">
+        <div className="flex-none">
+          <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>Coach</p>
+          <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>This week&apos;s check-in</h1>
+          <p className={`mt-2 text-sm sm:text-base ${MUTED}`}>
+            A quick, honest read on how the week&apos;s going and what&apos;s next.
+          </p>
+        </div>
 
-        <div className="mt-6 space-y-4">
-          {transcript.map((turn, i) =>
+        <div className="mt-6 min-h-0 flex-1 space-y-4 overflow-y-auto">
+          {messages.map((turn, i) =>
             turn.from === "user" ? (
-              <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white">
-                  {turn.text}
-                </div>
-              </div>
+              <UserBubble key={i} text={turn.text} />
             ) : (
-              <div key={i} className="rounded-2xl rounded-tl-sm border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div
+                key={i}
+                className="max-w-[85%] rounded-2xl rounded-tl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20"
+              >
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs text-white">S</span>
-                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Spotter Coach</span>
+                  <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
+                    <SmileyFaceIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
+                  </span>
+                  <span className={`text-xs font-semibold ${FAINT}`}>Spotter Coach</span>
                 </div>
 
-                <ReasoningRow label="Observed" text={turn.observation} />
-                <ReasoningRow label="Because" text={turn.reasoning} />
-                <ReasoningRow label="So" text={turn.recommendation} emphasize />
+                <p className={`text-sm ${INK}`}>{turn.text}</p>
               </div>
             )
           )}
         </div>
+
+        <form onSubmit={handleSend} className="flex flex-none items-center gap-2 py-4">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Message your coach…"
+            className={`flex-1 rounded-full border-2 border-[#33465C]/15 bg-white px-4 py-2.5 text-sm text-[#26313D] focus:border-[#33465C]/40 focus:outline-none dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:text-[#EDF1F4] dark:focus:border-[#6E8CB0]/50 ${FAINT_PLACEHOLDER}`}
+          />
+          <button
+            type="submit"
+            disabled={!draft.trim()}
+            className={`${PRIMARY_BUTTON} flex-none disabled:cursor-not-allowed disabled:opacity-40`}
+          >
+            <span>Send</span>
+          </button>
+        </form>
       </main>
       <BottomNav />
     </div>
   );
 }
 
-function ReasoningRow({ label, text, emphasize }: { label: string; text: string; emphasize?: boolean }) {
+function UserBubble({ text }: { text: string }) {
   return (
-    <div className="mt-2 first:mt-0">
-      <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-        {label}
-      </span>
-      <span className={`text-sm ${emphasize ? "font-medium text-zinc-900 dark:text-zinc-50" : "text-zinc-600 dark:text-zinc-300"}`}>
+    <div className="flex justify-end">
+      <div
+        className={`max-w-[85%] rounded-2xl rounded-tr-sm border border-[#33465C]/10 px-4 py-2.5 text-sm ${INK} dark:border-[#6E8CB0]/15 ${FAINT_BG}`}
+      >
         {text}
-      </span>
+      </div>
     </div>
   );
 }

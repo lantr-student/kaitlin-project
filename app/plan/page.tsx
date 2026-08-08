@@ -38,11 +38,34 @@ const FUTURE_WORKOUT_HEADLINES: ((day: string) => string)[] = [
   (day) => `${day}, let's go`,
   () => `Your next workout`,
 ];
-// Generic day phrasing (no mention of "workout") for past/future days that are rest days —
-// derived from the arrays above so the two stay in sync automatically.
-const NAMES_WORKOUT = (template: (day: string) => string) => template("day").toLowerCase().includes("workout");
-const PAST_REST_HEADLINES = PAST_WORKOUT_HEADLINES.filter((t) => !NAMES_WORKOUT(t));
-const FUTURE_REST_HEADLINES = FUTURE_WORKOUT_HEADLINES.filter((t) => !NAMES_WORKOUT(t));
+// Past rest-day phrasing — "Yesterday..." only renders literally when the day actually is yesterday,
+// otherwise the weekday name is substituted in.
+const PAST_REST_HEADLINES: ((day: string, isYesterday: boolean) => string)[] = [
+  () => `How did your rest day go?`,
+  () => `How did you recover?`,
+  () => `A look back at your recovery`,
+  () => `You took a day to recover.`,
+  (day, isYesterday) => (isYesterday ? `Yesterday was about recovery.` : `${day} was about recovery.`),
+  () => `How did you spend your rest day?`,
+  () => `Recovery was on the plan.`,
+  () => `Rest was part of the plan`,
+];
+
+// Future rest-day phrasing usable for any day out — "tomorrow" swaps to the weekday name otherwise.
+const FUTURE_REST_HEADLINES: ((day: string, isTomorrow: boolean) => string)[] = [
+  () => `A day to recover.`,
+  () => `Recovery is on the plan.`,
+  (day, isTomorrow) => (isTomorrow ? `Tomorrow, we recover.` : `${day}, we recover.`),
+  () => `Your next day is for recovery.`,
+  (day, isTomorrow) => (isTomorrow ? `Take tomorrow to recover.` : `Take ${day} to recover.`),
+  () => `A rest day is coming up.`,
+];
+// Extra phrasing that only makes sense when the rest day is specifically tomorrow.
+const FUTURE_REST_TOMORROW_HEADLINES: ((day: string, isTomorrow: boolean) => string)[] = [
+  ...FUTURE_REST_HEADLINES,
+  () => `Next up: recovery.`,
+  () => `We'll take it easy tomorrow.`,
+];
 const TODAY_REST_HEADLINES = [
   "Today's a rest day",
   "Take it easy today",
@@ -64,7 +87,8 @@ type HeadlinePicks = {
   pastWorkout: number;
   pastRest: number;
   futureWorkout: number;
-  futureRest: number;
+  futureRestFar: number;
+  futureRestTomorrow: number;
   todayRest: number;
   todayWorkout: number;
 };
@@ -73,7 +97,8 @@ const INITIAL_HEADLINE_PICKS: HeadlinePicks = {
   pastWorkout: 0,
   pastRest: 0,
   futureWorkout: 0,
-  futureRest: 0,
+  futureRestFar: 0,
+  futureRestTomorrow: 0,
   todayRest: 0,
   todayWorkout: 0,
 };
@@ -83,24 +108,27 @@ function randomHeadlinePicks(): HeadlinePicks {
     pastWorkout: Math.floor(Math.random() * PAST_WORKOUT_HEADLINES.length),
     pastRest: Math.floor(Math.random() * PAST_REST_HEADLINES.length),
     futureWorkout: Math.floor(Math.random() * FUTURE_WORKOUT_HEADLINES.length),
-    futureRest: Math.floor(Math.random() * FUTURE_REST_HEADLINES.length),
+    futureRestFar: Math.floor(Math.random() * FUTURE_REST_HEADLINES.length),
+    futureRestTomorrow: Math.floor(Math.random() * FUTURE_REST_TOMORROW_HEADLINES.length),
     todayRest: Math.floor(Math.random() * TODAY_REST_HEADLINES.length),
     todayWorkout: Math.floor(Math.random() * TODAY_WORKOUT_HEADLINES.length),
   };
 }
 
 function headlineFor(day: PlanDay, dayIndex: number, todayIdx: number, picks: HeadlinePicks): string {
-  if (dayIndex === todayIdx) {
+  const dayOffset = dayIndex - todayIdx;
+  if (dayOffset === 0) {
     return day.isRestDay ? TODAY_REST_HEADLINES[picks.todayRest] : TODAY_WORKOUT_HEADLINES[picks.todayWorkout];
   }
-  if (dayIndex < todayIdx) {
-    return day.isRestDay
-      ? PAST_REST_HEADLINES[picks.pastRest](day.day)
-      : PAST_WORKOUT_HEADLINES[picks.pastWorkout](day.day);
+  if (dayOffset < 0) {
+    if (!day.isRestDay) return PAST_WORKOUT_HEADLINES[picks.pastWorkout](day.day);
+    return PAST_REST_HEADLINES[picks.pastRest](day.day, dayOffset === -1);
   }
-  return day.isRestDay
-    ? FUTURE_REST_HEADLINES[picks.futureRest](day.day)
-    : FUTURE_WORKOUT_HEADLINES[picks.futureWorkout](day.day);
+  if (!day.isRestDay) return FUTURE_WORKOUT_HEADLINES[picks.futureWorkout](day.day);
+  const isTomorrow = dayOffset === 1;
+  return isTomorrow
+    ? FUTURE_REST_TOMORROW_HEADLINES[picks.futureRestTomorrow](day.day, true)
+    : FUTURE_REST_HEADLINES[picks.futureRestFar](day.day, false);
 }
 
 // Colors for the homepage metric rings — distinct from the rest of the app's navy/sage palette.
