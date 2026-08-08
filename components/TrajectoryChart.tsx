@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Goal, TrajectoryPoint } from "@/lib/data";
-import { FAINT, MUTED } from "@/lib/theme";
+import { FAINT, INK, MUTED } from "@/lib/theme";
 
 const WIDTH = 640;
 const HEIGHT = 320;
@@ -57,6 +57,7 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
         </span>
       </div>
 
+      <div className="relative">
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="w-full h-auto"
@@ -148,22 +149,37 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
         )}
       </svg>
 
+      {hovered && (
+        <div
+          className={`pointer-events-none absolute top-2 z-10 whitespace-nowrap rounded-lg border border-[#33465C]/15 bg-white/95 px-3 py-2 text-xs shadow-md shadow-black/5 dark:border-[#6E8CB0]/20 dark:bg-[#1E2630]/95 ${MUTED}`}
+          style={{
+            left: `${(xAt(hoverIndex!) / WIDTH) * 100}%`,
+            transform:
+              hoverIndex! < trajectory.length * 0.2
+                ? "translateX(0%)"
+                : hoverIndex! > trajectory.length * 0.8
+                  ? "translateX(-100%)"
+                  : "translateX(-50%)",
+          }}
+        >
+          <span className={`font-semibold ${INK}`}>{hovered.label}</span>
+          <div>
+            target pace {hovered.ideal} {goal.unit}
+          </div>
+          {hovered.actual !== null && (
+            <div>
+              actual {hovered.actual} {goal.unit}
+            </div>
+          )}
+        </div>
+      )}
+      </div>
+
       <div className={`mt-2 flex justify-between text-xs ${FAINT}`}>
         <span>{trajectory[0].label}</span>
         <span>{lastActual ? trajectory[lastActual.i].label : ""}</span>
         <span>{trajectory[trajectory.length - 1].label}</span>
       </div>
-
-      {hovered && (
-        <div
-          className={`mt-4 rounded-lg border border-[#33465C]/15 bg-[#F4F6F7] px-4 py-3 text-sm dark:border-[#6E8CB0]/20 dark:bg-[#141A21] ${MUTED}`}
-        >
-          <span className="font-semibold text-[#26313D] dark:text-[#EDF1F4]">{hovered.label}</span>
-          {" — "}
-          target pace {hovered.ideal} {goal.unit}
-          {hovered.actual !== null ? `, actual ${hovered.actual} ${goal.unit}` : ""}
-        </div>
-      )}
     </div>
   );
 }
