@@ -1,0 +1,59 @@
+Spotter — Change Log
+Major changes are logged here going forward, most recent first.
+
+================================================================================
+
+2026-08-11
+- Coach's notes on the Plan page are no longer editable. The sticky note now
+  always renders as read-only text, matching how it already worked on the Log
+  page. Removed the now-unused `editable` prop/textarea path from the
+  StickyNote component since nothing used it anymore.
+
+2026-08-10
+- Fixed the Log page being locked to a fixed viewport height on small
+  screens, which made it impossible to scroll down through today's full
+  exercise list on mobile. The page now scrolls normally below the desktop
+  breakpoint; the fixed, no-scroll dashboard layout on larger screens is
+  unchanged.
+
+2026-08-08
+- Reworked the Progress page's trajectory chart hover behavior. The info
+  box used to render below the chart and shift the whole page layout on
+  every hover; it's now a small floating tooltip positioned on the graph
+  itself, next to the mouse, so hovering no longer disturbs page
+  orientation.
+
+
+Design system (biggest shift)
+- Before: default Tailwind palette (zinc grays, blue-600 accents), system font, plain rounded-rectangle cards.
+- Now: a custom brand identity — navy #33465C / sage green #7C9270 / warm cream #F4F6F7 (with a dedicated dark-mode navy #141A21), Quicksand for body text and Caveat (handwriting-style) for accents/headers. All of it centralized in lib/theme.ts (didn't exist originally) so every page shares the same tokens instead of repeating hex values.
+- New shared components built to support this look: Checkbox (hand-sketched checkmark), ProgressRing, StickyNote, and a custom icons.tsx set — none of these existed in the first prototype.
+
+Landing page
+Went from a centered logo + heading + button on a plain background to a full illustrated hero: scattered background rings and faint dumbbell watermarks, a much larger logo badge with a custom smiley icon, oversized display type, and a bigger CTA button.
+
+Onboarding
+The 6-step wizard (goal → experience → days/week → equipment → dated goal → summary) is structurally unchanged from the original — same steps, same flow logic. The revisions were entirely visual: new type scale, the hand-sketch checkbox component, and restyled summary rows.
+
+Plan page (largest rewrite — 71 → ~400 lines)
+Originally a simple "today" banner plus a static grid of day cards. Now it has: time-of-day-aware greeting copy, randomized natural-language headlines per day (varies each page load), colored metric progress rings, and a three-column layout — one large featured DayCard in the center flanked by rows of small day tabs (SmallDayCard) on either side. Clicking one of those small tabs swaps that day into the center as the new featured card (setSelectedDayIndex) and changes the headline accordingly, while hovering one shows a small preview flyout of its exercises first.
+
+Log page (91 → ~240 lines)
+Went from a plain list of sets to a "workout notebook" layout — each exercise is its own slightly-tilted card with a form-tip popover, a StickyNote-styled coach comment, and per-exercise progress rings. Most recent commit (this session) fixed a bug where the page was locked to a fixed viewport height and couldn't scroll on small screens. 
+
+Checking off an exercise on the Plan page bulk-toggles its sets
+AppStateProvider derives exerciseDone automatically (true once every set for that exercise is checked) and exposes a separate toggleExercise that mass-toggles all of an exercise's sets at once. That's what powers the checkbox next to each exercise on the Plan page's featured card — checking it there checks every set for that exercise without opening the Log page, and the two pages stay in sync since they share the same underlying setProgress state.
+
+
+Progress page
+Smaller diff, but added ProgressRing stat tiles and a real trajectory chart (actual-vs-target pace line graph). Most recent change (this session) moved the chart's hover tooltip from a block below the chart — which shifted the whole layout on every hover — to a small floating box that sits on the graph itself.
+
+Coach page
+Kept the original chat-transcript concept (coach/user message bubbles built from mock data) but restyled the bubbles and added a message input box at the bottom (visual only — no backend yet). The page itself is locked to the viewport height (h-dvh), with the header and input pinned in place; only the message list in between scrolls internally (overflow-y-auto), so the conversation scrolls without the rest of the page moving. Pasted in text to change the coach’s talking style to sound more conversational.
+
+Data layer (lib/data.ts)
+Same core shape (goal, plan day, trajectory point, coach turn types) but WEEKLY_PLAN's mock content grew substantially (rest times, form tips per exercise), and a goalProgressPercent helper was added to drive the new progress rings.
+
+What hasn't changed
+Per CLAUDE.md, it's still entirely frontend-only — everything runs off mocked data in lib/data.ts and local React state via AppStateProvider, no backend, no database, no real photo-based form-checking yet.
+
