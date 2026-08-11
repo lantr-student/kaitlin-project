@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { SmileyFaceIcon } from "@/components/icons";
 import { buildCoachTranscript, buildTrajectory, computeProgressStats, type CoachTurn } from "@/lib/data";
-import { quicksand, caveat, FAINT_BG, FAINT_PLACEHOLDER, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+import { quicksand, caveat, FAINT_BG, FAINT_PLACEHOLDER, INK, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+
+const HEADLINES = [
+  "How's training going?",
+  "What's on your mind?",
+  "What can I help with?",
+  "Got a question? Ask me.",
+  "I'm here. What's up?",
+  "Let's chat.",
+];
 
 export default function Coach() {
   const { onboarding, activity } = useAppState();
@@ -16,6 +25,14 @@ export default function Coach() {
 
   const [messages, setMessages] = useState<CoachTurn[]>(() => buildCoachTranscript(goal, stats, activity));
   const [draft, setDraft] = useState("");
+  // Starts at a fixed pick so server and client render the same thing before this
+  // runs, then randomizes on mount (mirrors the Plan page's headline rotation).
+  const [headlinePick, setHeadlinePick] = useState(0);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only re-roll to avoid an SSR/client hydration mismatch from Math.random()
+    setHeadlinePick(Math.floor(Math.random() * HEADLINES.length));
+  }, []);
 
   const handleSend = (e: FormEvent) => {
     e.preventDefault();
@@ -30,10 +47,7 @@ export default function Coach() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-6 pt-10 sm:pt-14">
         <div className="flex-none">
           <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>Coach</p>
-          <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>This week&apos;s check-in</h1>
-          <p className={`mt-2 text-sm sm:text-base ${MUTED}`}>
-            A quick, honest read on how the week&apos;s going and what&apos;s next.
-          </p>
+          <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>{HEADLINES[headlinePick]}</h1>
         </div>
 
         <div className="mt-6 min-h-0 flex-1 space-y-4 overflow-y-auto">

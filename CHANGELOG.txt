@@ -4,6 +4,10 @@ Major changes are logged here going forward, most recent first.
 ================================================================================
 
 2026-08-11
+- The Coach page header no longer always says "This week's check-in" — it now
+  picks randomly from a set of six short prompts ("How's training going?",
+  "What's on your mind?", etc.) each page load, the same rotating-headline
+  pattern already used on the Plan page.
 - Fixed the Plan page overflowing horizontally on mobile, which left a wide
   strip of empty gray space on the right of the screen. The hidden
   hover-preview tooltip on each small day card was sized and positioned for
