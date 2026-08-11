@@ -323,7 +323,7 @@ function DayCard({
       <div className="flex-[3]" />
 
       <div className="mb-4 flex flex-col items-center">
-        <StickyNote label="Coach's notes" text={day.coachNote} tilt="left" editable />
+        <StickyNote label="Coach's notes" text={day.coachNote} tilt="left" />
       </div>
 
       <div className="flex-1" />
