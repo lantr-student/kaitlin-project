@@ -4,6 +4,12 @@ Major changes are logged here going forward, most recent first.
 ================================================================================
 
 2026-08-11
+- Fixed the Plan page overflowing horizontally on mobile, which left a wide
+  strip of empty gray space on the right of the screen. The hidden
+  hover-preview tooltip on each small day card was sized and positioned for
+  desktop's side-by-side layout but still occupied layout width even while
+  invisible on mobile; it's now removed from layout entirely below the sm
+  breakpoint and only reappears for desktop's hover behavior.
 - Coach's notes on the Plan page are no longer editable. The sticky note now
   always renders as read-only text, matching how it already worked on the Log
   page. Removed the now-unused `editable` prop/textarea path from the

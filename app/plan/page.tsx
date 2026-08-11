@@ -370,7 +370,7 @@ function SmallDayCard({
       </button>
 
       <div
-        className={`invisible absolute top-1/2 z-10 w-56 -translate-y-1/2 rounded-2xl bg-white p-4 opacity-0 shadow-lg shadow-black/10 transition-all group-hover:visible group-hover:opacity-100 dark:bg-[#1E2630] ${
+        className={`invisible absolute top-1/2 z-10 hidden w-56 -translate-y-1/2 rounded-2xl bg-white p-4 opacity-0 shadow-lg shadow-black/10 transition-all group-hover:visible group-hover:opacity-100 sm:block dark:bg-[#1E2630] ${
           edge === "left" ? "right-full mr-2" : "left-full ml-2"
         }`}
       >
