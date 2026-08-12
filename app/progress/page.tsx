@@ -8,7 +8,7 @@ import { StatTile } from "@/components/StatTile";
 import TrajectoryChart from "@/components/TrajectoryChart";
 import { useAppState } from "@/components/AppStateProvider";
 import { buildTrajectory, computeProgressStats, goalProgressPercent } from "@/lib/data";
-import { quicksand, caveat, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+import { quicksand, caveat, DONE_TEXT, INK, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 export default function Progress() {
   const { onboarding, activity, workoutCompleted } = useAppState();
@@ -17,6 +17,7 @@ export default function Progress() {
   const trajectory = buildTrajectory(goal);
   const stats = computeProgressStats(goal, trajectory);
   const goalPercent = goalProgressPercent(goal);
+  const goalShortName = goal.metric.split(" ")[0].toLowerCase();
 
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
@@ -25,17 +26,12 @@ export default function Progress() {
         <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>
           {goal.metric}: {stats.actualToday} → {goal.targetValue} {goal.unit}
         </h1>
-        <p className={`mt-2 text-sm sm:text-base ${MUTED}`}>
-          {stats.daysRemaining} days left ·{" "}
-          <span
-            className={
-              stats.behindPace
-                ? "font-semibold text-[#8A6D1E] dark:text-[#E3CE7A]"
-                : "font-semibold text-[#5C7A52] dark:text-[#A9BFA0]"
-            }
-          >
-            {stats.paceGap} {goal.unit} {stats.behindPace ? "behind" : "ahead of"} target pace
-          </span>
+        <p
+          className={`mt-2 text-sm font-semibold sm:text-base ${
+            stats.behindPace ? "text-[#8A6D1E] dark:text-[#E3CE7A]" : "text-[#5C7A52] dark:text-[#A9BFA0]"
+          }`}
+        >
+          {stats.paceGap} {goal.unit} {stats.behindPace ? "behind" : "ahead of"} target pace
         </p>
 
         {workoutCompleted && (
@@ -53,16 +49,20 @@ export default function Progress() {
         </section>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile icon={<FireIcon className="h-6 w-6" />} label="Day streak" value={String(activity.streakDays)} />
+          <StatTile
+            icon={<FireIcon className="h-6 w-6 text-[#C1622E] dark:text-[#E0916A]" />}
+            label="Days consistent"
+            value={String(activity.streakDays)}
+          />
           <StatTile
             icon={<DumbbellIcon className="h-4 w-8" />}
-            label="Goal progress"
+            label={`to ${goalShortName} goal`}
             value={`${goalPercent}%`}
           />
           <StatTile
-            icon={<CheckIcon className={`h-5 w-5 ${DONE_TEXT}`} />}
-            label="Weeks left"
-            value={String(stats.weeksRemaining)}
+            icon={<CheckIcon className={`h-6 w-6 ${DONE_TEXT}`} />}
+            label="Workouts completed"
+            value={String(activity.totalWorkoutDays)}
           />
 
           <Link href="/coach" className={`${PRIMARY_BUTTON} self-center justify-self-center`}>

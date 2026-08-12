@@ -4,9 +4,9 @@ import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { CheckIcon } from "@/components/Checkbox";
-import { COACH_ICONS, DumbbellIcon, FireIcon, PencilIcon } from "@/components/icons";
+import { BarbellLoadIcon, COACH_ICONS, DumbbellIcon, FireIcon, GaugeIcon, PencilIcon } from "@/components/icons";
 import { StatTile } from "@/components/StatTile";
-import { goalProgressPercent } from "@/lib/data";
+import { buildTrajectory, computeProgressStats, goalProgressPercent } from "@/lib/data";
 import { quicksand, caveat, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const CARD = "rounded-3xl border-2 border-[#33465C]/15 bg-white p-6 shadow-sm shadow-black/5 sm:p-8 dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:shadow-black/20";
@@ -34,6 +34,9 @@ export default function Profile() {
   const { goal, goalType, experience, daysPerWeek, equipment } = onboarding;
 
   const goalPercent = goalProgressPercent(goal);
+  const goalShortName = goal.metric.split(" ")[0].toLowerCase();
+  const trajectory = buildTrajectory(goal);
+  const stats = computeProgressStats(goal, trajectory);
 
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
@@ -42,19 +45,37 @@ export default function Profile() {
         <DisplayNameHeader name={displayName} onSave={setDisplayName} />
         <p className={`mt-1 text-sm ${MUTED}`}>Member since {formatLongDate(goal.startDate)}</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile icon={<FireIcon className="h-6 w-6" />} label="Day streak" value={String(activity.streakDays)} />
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatTile
-            icon={<CheckIcon className={`h-5 w-5 ${DONE_TEXT}`} />}
-            label="Week streak"
-            value={String(activity.weekStreak)}
+            icon={<FireIcon className="h-6 w-6 text-[#C1622E] dark:text-[#E0916A]" />}
+            label="days consistent"
+            value={String(activity.streakDays)}
+          />
+          <StatTile
+            icon={<FireIcon className="h-6 w-6 text-[#D4A017] dark:text-[#F0C750]" />}
+            label="longest streak"
+            value={String(activity.longestStreakDays)}
+          />
+          <StatTile
+            icon={<CheckIcon className={`h-6 w-6 ${DONE_TEXT}`} />}
+            label="workouts completed"
+            value={String(activity.totalWorkoutDays)}
           />
           <StatTile
             icon={<DumbbellIcon className="h-4 w-8" />}
-            label="Workouts this month"
-            value={`${activity.workoutsThisMonth}/${activity.plannedThisMonth}`}
+            label={`to ${goalShortName} goal`}
+            value={`${goalPercent}%`}
           />
-          <StatTile label="Goal progress" value={`${goalPercent}%`} />
+          <StatTile
+            icon={<GaugeIcon className="h-6 w-6 text-[#33465C] dark:text-[#6E8CB0]" />}
+            label={`${stats.behindPace ? "behind" : "ahead of"} target pace`}
+            value={`${stats.paceGap} ${goal.unit}`}
+          />
+          <StatTile
+            icon={<BarbellLoadIcon className="h-6 w-6 text-[#33465C] dark:text-[#6E8CB0]" />}
+            label="moved in total"
+            value={`${activity.totalWeightLifted.toLocaleString()} lbs`}
+          />
         </div>
 
         <section className={`${CARD} mt-6`}>

@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 
+// Color comes from a text-* class on className (fill-current) so the same icon can be
+// reused in different tones — e.g. the everyday orange vs. a gold "personal best" accent.
 export function FireIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className={`fill-[#C1622E] dark:fill-[#E0916A] ${className ?? ""}`}>
+    <svg viewBox="0 0 24 24" aria-hidden className={`fill-current ${className ?? ""}`}>
       <path d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" />
     </svg>
   );
@@ -76,6 +78,35 @@ export function HeartIcon({ className }: { className?: string }) {
         d="M32 54 C10 38 4 24 14 16 C21 10 30 13 32 21 C34 13 43 10 50 16 C60 24 54 38 32 54 Z"
         className="fill-current"
       />
+    </svg>
+  );
+}
+
+// A speedometer/gauge, for pace-related stats. Sized to fill the viewBox at roughly the
+// same visual weight as the other stat-tile icons (they were reading noticeably smaller).
+export function GaugeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={className}>
+      <path
+        d="M3 19a9 9 0 1 1 18 0"
+        className="fill-none stroke-current"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path d="M12 19 L17.5 8.5" className="stroke-current" strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx="12" cy="19" r="1.8" className="fill-current" />
+    </svg>
+  );
+}
+
+// A loaded barbell viewed end-on (bar + plates), for total-volume/weight-lifted stats —
+// distinct from DumbbellIcon's side-view dumbbell shape used for goal/target stats.
+export function BarbellLoadIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={`fill-current ${className ?? ""}`}>
+      <rect x="10" y="2" width="4" height="20" rx="1" />
+      <rect x="4" y="5" width="4" height="14" rx="1" opacity="0.85" />
+      <rect x="16" y="5" width="4" height="14" rx="1" opacity="0.85" />
     </svg>
   );
 }

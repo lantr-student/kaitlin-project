@@ -27,11 +27,13 @@ type AppState = {
   workoutCompleted: boolean;
   activity: {
     streakDays: number;
-    weekStreak: number;
+    longestStreakDays: number;
     workoutsThisWeek: number;
     plannedThisWeek: number;
     workoutsThisMonth: number;
     plannedThisMonth: number;
+    totalWorkoutDays: number;
+    totalWeightLifted: number;
   };
   coachIcon: CoachIconId;
   setCoachIcon: (id: CoachIconId) => void;
@@ -68,6 +70,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   );
   const workoutCompleted = exerciseDone.length > 0 && exerciseDone.every(Boolean);
   const workoutStarted = setProgress.some((sets) => sets.some((set) => set.done));
+
+  // Real volume from today's actually-logged sets (weight x reps), so completed sets
+  // contribute their real numbers rather than a flat placeholder increment.
+  const sessionVolume = useMemo(
+    () =>
+      setProgress.reduce(
+        (sum, sets) =>
+          sum +
+          sets.reduce((setSum, set) => {
+            const weight = Number(set.weight);
+            const reps = Number(set.reps);
+            return set.done && Number.isFinite(weight) && Number.isFinite(reps) ? setSum + weight * reps : setSum;
+          }, 0),
+        0
+      ),
+    [setProgress]
+  );
 
   const value = useMemo<AppState>(
     () => ({
@@ -106,14 +125,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       },
       workoutStarted,
       workoutCompleted,
-      activity: {
-        streakDays: PROGRESS_ACTIVITY.streakDays + (workoutCompleted ? 1 : 0),
-        weekStreak: PROGRESS_ACTIVITY.weekStreak,
-        workoutsThisWeek: PROGRESS_ACTIVITY.workoutsThisWeek + (workoutCompleted ? 1 : 0),
-        plannedThisWeek: PROGRESS_ACTIVITY.plannedThisWeek,
-        workoutsThisMonth: PROGRESS_ACTIVITY.workoutsThisMonth + (workoutCompleted ? 1 : 0),
-        plannedThisMonth: PROGRESS_ACTIVITY.plannedThisMonth,
-      },
+      activity: (() => {
+        const streakDays = PROGRESS_ACTIVITY.streakDays + (workoutCompleted ? 1 : 0);
+        return {
+          streakDays,
+          longestStreakDays: Math.max(PROGRESS_ACTIVITY.longestStreakDays, streakDays),
+          workoutsThisWeek: PROGRESS_ACTIVITY.workoutsThisWeek + (workoutCompleted ? 1 : 0),
+          plannedThisWeek: PROGRESS_ACTIVITY.plannedThisWeek,
+          workoutsThisMonth: PROGRESS_ACTIVITY.workoutsThisMonth + (workoutCompleted ? 1 : 0),
+          plannedThisMonth: PROGRESS_ACTIVITY.plannedThisMonth,
+          totalWorkoutDays: PROGRESS_ACTIVITY.totalWorkoutDays + (workoutCompleted ? 1 : 0),
+          totalWeightLifted: PROGRESS_ACTIVITY.totalWeightLifted + sessionVolume,
+        };
+      })(),
       coachIcon,
       setCoachIcon,
       account,
@@ -129,6 +153,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       exerciseDone,
       workoutStarted,
       workoutCompleted,
+      sessionVolume,
       coachIcon,
       account,
       displayName,

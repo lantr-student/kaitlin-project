@@ -81,7 +81,7 @@ export const GOAL_METRICS: { metric: string; unit: string; higherIsBetter: boole
   { metric: "Body weight", unit: "lbs", higherIsBetter: false },
 ];
 
-const TODAY_ISO = "2026-08-04";
+const TODAY_ISO = "2026-08-05";
 
 export const DEFAULT_ONBOARDING: OnboardingAnswers = {
   goalType: "Build strength",
@@ -95,7 +95,7 @@ export const DEFAULT_ONBOARDING: OnboardingAnswers = {
     currentValue: 115,
     targetValue: 135,
     startDate: "2026-06-01",
-    targetDate: "2026-12-15",
+    targetDate: "2026-12-01",
   },
 };
 
@@ -294,12 +294,32 @@ export const WEEKLY_PLAN: PlanDay[] = [
 export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
 
 export const PROGRESS_ACTIVITY = {
-  streakDays: 4,
-  weekStreak: 3,
+  // Consecutive workout days completed with none missed — resets to 0 the moment a
+  // scheduled workout day is skipped. Hardcoded for now (no persisted daily history
+  // to compute this from); AppStateProvider bumps it by 1 live when today's workout
+  // is finished this session.
+  streakDays: 13,
+  // Longest unbroken streak ever, must be >= streakDays. Hardcoded for now — a
+  // 16-day personal-best plausibly fits in the ~24 scheduled slots before the
+  // current streak began (see totalWorkoutDays below).
+  longestStreakDays: 16,
   workoutsThisWeek: 1,
   plannedThisWeek: 4,
   workoutsThisMonth: 9,
   plannedThisMonth: 13,
+  // Lifetime total of completed workout days, independent of the current streak
+  // (keeps counting even after a streak resets). Also hardcoded for now. 33 = the
+  // 13-day current streak plus 20 completed in the ~24 scheduled slots before it
+  // began (2026-06-01 through the day before the streak started) — high (83%)
+  // pre-streak adherence, consistent with startDate/TODAY_ISO.
+  totalWorkoutDays: 33,
+  // All-time volume (sum of weight x reps across every completed set), in the same
+  // lbs unit WEEKLY_PLAN's targetWeights use. Base amount hardcoded (no persisted
+  // history of past sessions) — derived from WEEKLY_PLAN's own per-session volume
+  // (~9,295 lbs/session average across the 4 weekly workout days) x 33 completed
+  // sessions =~ 306,735, rounded to 305,000. AppStateProvider adds today's actual
+  // logged volume (from setProgress) live on top of this base.
+  totalWeightLifted: 305000,
 };
 
 function parseISODate(iso: string): Date {
