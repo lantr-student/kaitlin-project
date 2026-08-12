@@ -5,8 +5,8 @@ import type { Goal, TrajectoryPoint } from "@/lib/data";
 import { FAINT, INK, MUTED } from "@/lib/theme";
 
 const WIDTH = 640;
-const HEIGHT = 320;
-const PADDING = { top: 16, right: 16, bottom: 28, left: 40 };
+const HEIGHT = 380;
+const PADDING = { top: 10, right: 16, bottom: 28, left: 40 };
 
 const FAINT_FILL = "fill-[#8A939B] dark:fill-[#67727C]";
 const MUTED_FILL = "fill-[#67727C] dark:fill-[#9AA6B0]";
@@ -43,8 +43,8 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
   const hovered = hoverIndex !== null ? trajectory[hoverIndex] : null;
 
   return (
-    <div className="[--chart-bg:#fff] [--series-actual:#7C9270] [--series-ideal:#33465C] dark:[--chart-bg:#1E2630] dark:[--series-actual:#A9BFA0] dark:[--series-ideal:#6E8CB0]">
-      <div className={`mb-4 flex items-center gap-5 text-sm font-medium ${MUTED}`}>
+    <div className="flex flex-col [--chart-bg:#fff] [--series-actual:#7C9270] [--series-ideal:#33465C] sm:h-full dark:[--chart-bg:#1E2630] dark:[--series-actual:#A9BFA0] dark:[--series-ideal:#6E8CB0]">
+      <div className={`mb-1 flex flex-none items-center gap-5 text-sm font-medium ${MUTED}`}>
         <span className="flex items-center gap-2">
           <span className="inline-block h-0.5 w-5 rounded-full bg-(--series-actual)" />
           Actual
@@ -57,10 +57,11 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
         </span>
       </div>
 
-      <div className="relative">
+      <div className="relative sm:min-h-0 sm:flex-1">
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="w-full h-auto"
+        className="h-auto w-full sm:h-full"
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={`${goal.metric} trajectory versus target pace`}
       >
@@ -204,7 +205,7 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
       )}
       </div>
 
-      <div className={`mt-2 flex justify-between text-xs ${FAINT}`}>
+      <div className={`mt-2 flex flex-none justify-between text-xs ${FAINT}`}>
         <span>{trajectory[0].label}</span>
         <span>{lastActual ? trajectory[lastActual.i].label : ""}</span>
         <span>{trajectory[trajectory.length - 1].label}</span>

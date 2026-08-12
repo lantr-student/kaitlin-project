@@ -297,29 +297,30 @@ export const PROGRESS_ACTIVITY = {
   // Consecutive workout days completed with none missed — resets to 0 the moment a
   // scheduled workout day is skipped. Hardcoded for now (no persisted daily history
   // to compute this from); AppStateProvider bumps it by 1 live when today's workout
-  // is finished this session.
-  streakDays: 13,
-  // Longest unbroken streak ever, must be >= streakDays. Hardcoded for now — a
-  // 16-day personal-best plausibly fits in the ~24 scheduled slots before the
-  // current streak began (see totalWorkoutDays below).
+  // is finished this session. Currently tied with longestStreakDays (16) — finishing
+  // today's workout pushes it to 17, becoming a new all-time record.
+  streakDays: 16,
+  // Longest unbroken streak ever, must be >= streakDays. Hardcoded for now. Right
+  // now it's tied with the current streak (both 16) rather than an older, separate
+  // record — AppStateProvider takes Math.max(longestStreakDays, live streakDays),
+  // so completing today's workout (streakDays -> 17) automatically becomes the new
+  // longest streak with no other change needed.
   longestStreakDays: 16,
   workoutsThisWeek: 1,
   plannedThisWeek: 4,
   workoutsThisMonth: 9,
   plannedThisMonth: 13,
   // Lifetime total of completed workout days, independent of the current streak
-  // (keeps counting even after a streak resets). Also hardcoded for now. 33 = the
-  // 13-day current streak plus 20 completed in the ~24 scheduled slots before it
-  // began (2026-06-01 through the day before the streak started) — high (83%)
-  // pre-streak adherence, consistent with startDate/TODAY_ISO.
-  totalWorkoutDays: 33,
+  // (keeps counting even after a streak resets). Also hardcoded for now — 32 =
+  // the sum of PAST_WEEKLY_COMPLETIONS (31) below plus workoutsThisWeek (1).
+  totalWorkoutDays: 32,
   // All-time volume (sum of weight x reps across every completed set), in the same
   // lbs unit WEEKLY_PLAN's targetWeights use. Base amount hardcoded (no persisted
   // history of past sessions) — derived from WEEKLY_PLAN's own per-session volume
-  // (~9,295 lbs/session average across the 4 weekly workout days) x 33 completed
-  // sessions =~ 306,735, rounded to 305,000. AppStateProvider adds today's actual
+  // (~9,295 lbs/session average across the 4 weekly workout days) x 32 completed
+  // sessions =~ 297,440, rounded to 295,000. AppStateProvider adds today's actual
   // logged volume (from setProgress) live on top of this base.
-  totalWeightLifted: 305000,
+  totalWeightLifted: 295000,
 };
 
 function parseISODate(iso: string): Date {
@@ -429,17 +430,18 @@ export type WeeklyConsistencyPoint = {
 };
 
 // Hardcoded completions for every week before the current one, oldest first — 9 weeks
-// (2026-06-01 through the week before "today"), sums to 32 (+1 for this week so far =
-// 33 = totalWorkoutDays). Tells the same story as the streak stats:
-// - Weeks 0-3: four perfect 4/4 weeks = a 16-day streak (the program's best ever,
-//   matching longestStreakDays) right from the start.
-// - Week 4: drops to 2/4, breaking that streak — longestStreakDays stays at 16
-//   rather than growing, since nothing since has run longer.
-// - Week 5: another partial week (2/4) — keeps a gap before the current streak, so
-//   it doesn't connect to weeks 6-8 and inflate the current streak beyond 13.
-// - Weeks 6-8: three more perfect 4/4 weeks leading straight into today's partial
-//   week — together, 4+4+4+1 = 13, matching the current streakDays.
-const PAST_WEEKLY_COMPLETIONS = [4, 4, 4, 4, 2, 2, 4, 4, 4];
+// (2026-06-01 through the week before "today"), sums to 31 (+1 for this week so far =
+// 32 = totalWorkoutDays). Tells the same story as the streak stats:
+// - Weeks 0-4: five weeks of solid-but-imperfect early training (2,3,4,3,4 = 16
+//   total) — a believable ramp-up, none of them perfect, so nothing here connects
+//   into a longer streak than the current one.
+// - Week 5: a partial week (3/4) — the streak actually begins mid-week here
+//   (Wed-Sat), with that week's Monday as the missed day right before it.
+// - Weeks 6-8: three perfect 4/4 weeks continuing the streak unbroken into today.
+// - Together, week 5's 3 + weeks 6-8's 12 + today-so-far's 1 = 16, exactly matching
+//   the current streakDays — which is currently tied with longestStreakDays, so
+//   finishing today's workout sets a new all-time record (17).
+const PAST_WEEKLY_COMPLETIONS = [2, 3, 4, 3, 4, 3, 4, 4, 4];
 
 /**
  * Builds one bar per week from the goal's start date through its target date.

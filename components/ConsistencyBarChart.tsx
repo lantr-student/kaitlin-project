@@ -5,8 +5,8 @@ import type { WeeklyConsistencyPoint } from "@/lib/data";
 import { FAINT, INK, MUTED } from "@/lib/theme";
 
 const WIDTH = 640;
-const HEIGHT = 320;
-const PADDING = { top: 16, right: 16, bottom: 28, left: 40 };
+const HEIGHT = 380;
+const PADDING = { top: 10, right: 16, bottom: 28, left: 40 };
 
 const FAINT_FILL = "fill-[#8A939B] dark:fill-[#67727C]";
 
@@ -30,8 +30,8 @@ export default function ConsistencyBarChart({ points }: { points: WeeklyConsiste
   const hovered = hoverIndex !== null ? points[hoverIndex] : null;
 
   return (
-    <div className="[--chart-bg:#fff] [--series-actual:#7C9270] [--series-ideal:#33465C] dark:[--chart-bg:#1E2630] dark:[--series-actual:#A9BFA0] dark:[--series-ideal:#6E8CB0]">
-      <div className={`mb-4 flex items-center gap-5 text-sm font-medium ${MUTED}`}>
+    <div className="flex flex-col [--chart-bg:#fff] [--series-actual:#7C9270] [--series-ideal:#33465C] sm:h-full dark:[--chart-bg:#1E2630] dark:[--series-actual:#A9BFA0] dark:[--series-ideal:#6E8CB0]">
+      <div className={`mb-1 flex flex-none items-center gap-5 text-sm font-medium ${MUTED}`}>
         <span className="flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-sm bg-(--series-actual)" />
           Completed
@@ -42,10 +42,11 @@ export default function ConsistencyBarChart({ points }: { points: WeeklyConsiste
         </span>
       </div>
 
-      <div className="relative">
+      <div className="relative sm:min-h-0 sm:flex-1">
         <svg
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          className="w-full h-auto"
+          className="h-auto w-full sm:h-full"
+          preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label="Workouts completed per week, past and projected"
         >
@@ -153,7 +154,7 @@ export default function ConsistencyBarChart({ points }: { points: WeeklyConsiste
         )}
       </div>
 
-      <div className={`mt-2 flex justify-between text-xs ${FAINT}`}>
+      <div className={`mt-2 flex flex-none justify-between text-xs ${FAINT}`}>
         <span>{points[0]?.label}</span>
         <span>{todayIndex >= 0 ? "This week" : ""}</span>
         <span>{points[points.length - 1]?.label} (goal)</span>
