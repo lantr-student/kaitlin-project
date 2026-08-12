@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { COACH_ICONS } from "@/components/icons";
@@ -29,11 +29,16 @@ export default function Coach() {
   // Starts at a fixed pick so server and client render the same thing before this
   // runs, then randomizes on mount (mirrors the Plan page's headline rotation).
   const [headlinePick, setHeadlinePick] = useState(0);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only re-roll to avoid an SSR/client hydration mismatch from Math.random()
     setHeadlinePick(Math.floor(Math.random() * HEADLINES.length));
   }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages]);
 
   const handleSend = (e: FormEvent) => {
     e.preventDefault();
@@ -71,6 +76,7 @@ export default function Coach() {
               </div>
             )
           )}
+          <div ref={bottomRef} />
         </div>
 
         <form onSubmit={handleSend} className="flex flex-none items-center gap-2 py-4">
