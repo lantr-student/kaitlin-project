@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { CheckIcon } from "@/components/Checkbox";
 import { COACH_ICONS, DumbbellIcon, FireIcon, PencilIcon } from "@/components/icons";
+import { StatTile } from "@/components/StatTile";
 import { goalProgressPercent } from "@/lib/data";
 import { quicksand, caveat, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
@@ -157,18 +158,6 @@ function DisplayNameHeader({ name, onSave }: { name: string; onSave: (name: stri
       <button type="button" onClick={startEditing} aria-label="Edit display name" className={EDIT_BUTTON}>
         <PencilIcon className="h-5 w-5" />
       </button>
-    </div>
-  );
-}
-
-function StatTile({ icon, label, value }: { icon?: ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-[#33465C]/15 bg-white px-3 py-4 text-center dark:border-[#6E8CB0]/20 dark:bg-[#1E2630]">
-      <div className="flex items-center justify-center gap-1.5">
-        {icon}
-        <span className={`text-3xl font-bold tabular-nums ${INK}`}>{value}</span>
-      </div>
-      <div className={`text-xs ${FAINT}`}>{label}</div>
     </div>
   );
 }

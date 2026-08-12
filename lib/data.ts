@@ -81,7 +81,7 @@ export const GOAL_METRICS: { metric: string; unit: string; higherIsBetter: boole
   { metric: "Body weight", unit: "lbs", higherIsBetter: false },
 ];
 
-export const TODAY_ISO = "2026-08-04";
+const TODAY_ISO = "2026-08-04";
 
 export const DEFAULT_ONBOARDING: OnboardingAnswers = {
   goalType: "Build strength",
@@ -324,7 +324,7 @@ export function today(): Date {
   return parseISODate(TODAY_ISO);
 }
 
-export function isHigherBetter(goal: Goal): boolean {
+function isHigherBetter(goal: Goal): boolean {
   return goal.targetValue >= goal.startValue;
 }
 
