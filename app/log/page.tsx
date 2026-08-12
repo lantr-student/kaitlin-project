@@ -208,7 +208,7 @@ function ExerciseTipButton({ tip, openLeft, openUp }: { tip: string; openLeft: b
       <div
         className={`invisible absolute z-20 w-56 rounded-2xl bg-white p-4 opacity-0 shadow-lg shadow-black/10 transition-all group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:bg-[#1E2630] ${
           openUp ? "bottom-full mb-2" : "top-full mt-2"
-        } ${openLeft ? "right-0" : "left-0"}`}
+        } right-0 ${openLeft ? "" : "sm:right-auto sm:left-0"}`}
       >
         <p className={`text-sm font-semibold ${INK}`}>Form tips</p>
         <p className={`mt-1 text-xs ${MUTED}`}>{tip}</p>

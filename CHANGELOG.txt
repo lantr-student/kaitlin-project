@@ -8,7 +8,22 @@ removed, so it never mentions anything that no longer exists.
 ================================================================================
 
 2026-08-11
+- Fixed the Log page overflowing horizontally on mobile for exercises with
+  longer names (e.g. "Walking Lunges"). Same root cause as the earlier Plan
+  page fix: each exercise's hover-only form-tip popover reserved layout
+  width even while invisible; it's now clamped so it never extends past
+  the screen on mobile, while keeping its original left/right placement
+  on desktop's two-column layout.
+- Added a weekly workout-consistency bar chart to the Progress page, and a
+  Trajectory/Consistency toggle button to switch between it and the
+  existing trajectory chart in the same spot. Bars run from the goal's
+  start date through its target date — past weeks show hardcoded
+  completions, the current week updates live, future weeks show the
+  planned pace as a dashed projection. Also added dot markers along the
+  full trajectory chart's lines (previously only the two endpoint markers
+  had dots).
 - Fixed the Coach page's message input auto-zooming on focus in iOS Safari.
+  Now 16px on mobile, above the cutoff, and back to 14px on desktop.
 - The Coach chat now auto-scrolls to the latest message, both on page load
   and as new messages are sent/received, instead of staying pinned to the
   top of the conversation.

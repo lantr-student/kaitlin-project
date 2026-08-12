@@ -1,23 +1,32 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { CheckIcon } from "@/components/Checkbox";
+import ConsistencyBarChart from "@/components/ConsistencyBarChart";
 import { DumbbellIcon, FireIcon } from "@/components/icons";
 import { StatTile } from "@/components/StatTile";
 import TrajectoryChart from "@/components/TrajectoryChart";
 import { useAppState } from "@/components/AppStateProvider";
-import { buildTrajectory, computeProgressStats, goalProgressPercent } from "@/lib/data";
+import { buildTrajectory, buildWeeklyConsistency, computeProgressStats, goalProgressPercent } from "@/lib/data";
 import { quicksand, caveat, DONE_TEXT, INK, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+
+const TOGGLE_ACTIVE =
+  "rounded-full bg-[#33465C] px-3 py-1 text-xs font-semibold text-[#F4F6F7] dark:bg-[#6E8CB0] dark:text-[#141A21]";
+const TOGGLE_INACTIVE =
+  "rounded-full px-3 py-1 text-xs font-semibold text-[#33465C]/60 transition-colors hover:text-[#33465C] dark:text-[#9AA6B0]/70 dark:hover:text-[#9AA6B0]";
 
 export default function Progress() {
   const { onboarding, activity, workoutCompleted } = useAppState();
   const { goal } = onboarding;
+  const [chartView, setChartView] = useState<"trajectory" | "consistency">("trajectory");
 
   const trajectory = buildTrajectory(goal);
   const stats = computeProgressStats(goal, trajectory);
   const goalPercent = goalProgressPercent(goal);
   const goalShortName = goal.metric.split(" ")[0].toLowerCase();
+  const weeklyConsistency = buildWeeklyConsistency(goal, activity.plannedThisWeek, activity.workoutsThisWeek);
 
   return (
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
@@ -43,9 +52,39 @@ export default function Progress() {
         )}
 
         <section className="mt-8 rounded-3xl border-2 border-[#33465C]/15 bg-white p-8 shadow-sm shadow-black/5 dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:shadow-black/20">
-          <h2 className={`text-xl ${INK} ${caveat.className}`}>Goal trajectory</h2>
-          <p className={`mb-5 text-sm ${FAINT}`}>Actual progress vs. the pace needed to hit your target on time.</p>
-          <TrajectoryChart goal={goal} trajectory={trajectory} />
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className={`text-xl ${INK} ${caveat.className}`}>
+                {chartView === "trajectory" ? "Goal trajectory" : "Weekly consistency"}
+              </h2>
+              <p className={`mb-5 text-sm ${FAINT}`}>
+                {chartView === "trajectory"
+                  ? "Actual progress vs. the pace needed to hit your target on time."
+                  : "Workouts completed each week along your journey."}
+              </p>
+            </div>
+            <div className="flex flex-none rounded-full border-2 border-[#33465C]/15 p-1 dark:border-[#6E8CB0]/20">
+              <button
+                type="button"
+                onClick={() => setChartView("trajectory")}
+                className={chartView === "trajectory" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}
+              >
+                Trajectory
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartView("consistency")}
+                className={chartView === "consistency" ? TOGGLE_ACTIVE : TOGGLE_INACTIVE}
+              >
+                Consistency
+              </button>
+            </div>
+          </div>
+          {chartView === "trajectory" ? (
+            <TrajectoryChart goal={goal} trajectory={trajectory} />
+          ) : (
+            <ConsistencyBarChart points={weeklyConsistency} />
+          )}
         </section>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

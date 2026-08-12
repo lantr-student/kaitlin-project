@@ -90,6 +90,35 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
         <path d={idealPath} fill="none" stroke="var(--series-ideal)" strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
         <path d={actualPath} fill="none" stroke="var(--series-actual)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
+        {trajectory.map(
+          (p, i) =>
+            i !== trajectory.length - 1 && (
+              <circle
+                key={`ideal-dot-${p.label}`}
+                cx={xAt(i)}
+                cy={yAt(p.ideal)}
+                r="3"
+                fill="var(--series-ideal)"
+                stroke="var(--chart-bg)"
+                strokeWidth="1.5"
+              />
+            )
+        )}
+        {actualPoints.map(
+          ({ i, value }) =>
+            i !== lastActual?.i && (
+              <circle
+                key={`actual-dot-${i}`}
+                cx={xAt(i)}
+                cy={yAt(value)}
+                r="3"
+                fill="var(--series-actual)"
+                stroke="var(--chart-bg)"
+                strokeWidth="1.5"
+              />
+            )
+        )}
+
         <circle
           cx={xAt(trajectory.length - 1)}
           cy={yAt(goalPoint.ideal)}

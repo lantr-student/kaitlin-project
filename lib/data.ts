@@ -421,6 +421,67 @@ export function buildTrajectory(goal: Goal): TrajectoryPoint[] {
   });
 }
 
+export type WeeklyConsistencyPoint = {
+  label: string;
+  completed: number;
+  planned: number;
+  status: "past" | "current" | "future";
+};
+
+// Hardcoded completions for every week before the current one, oldest first — 9 weeks
+// (2026-06-01 through the week before "today"), sums to 32 (+1 for this week so far =
+// 33 = totalWorkoutDays). Tells the same story as the streak stats:
+// - Weeks 0-3: four perfect 4/4 weeks = a 16-day streak (the program's best ever,
+//   matching longestStreakDays) right from the start.
+// - Week 4: drops to 2/4, breaking that streak — longestStreakDays stays at 16
+//   rather than growing, since nothing since has run longer.
+// - Week 5: another partial week (2/4) — keeps a gap before the current streak, so
+//   it doesn't connect to weeks 6-8 and inflate the current streak beyond 13.
+// - Weeks 6-8: three more perfect 4/4 weeks leading straight into today's partial
+//   week — together, 4+4+4+1 = 13, matching the current streakDays.
+const PAST_WEEKLY_COMPLETIONS = [4, 4, 4, 4, 2, 2, 4, 4, 4];
+
+/**
+ * Builds one bar per week from the goal's start date through its target date.
+ * Weeks fully in the past pull from PAST_WEEKLY_COMPLETIONS (hardcoded, oldest
+ * first); the current week uses the live workoutsThisWeek count so it updates
+ * as sets get checked off; future weeks show the planned pace as a projection.
+ */
+export function buildWeeklyConsistency(
+  goal: Goal,
+  plannedThisWeek: number,
+  workoutsThisWeek: number
+): WeeklyConsistencyPoint[] {
+  const start = parseISODate(goal.startDate);
+  const target = parseISODate(goal.targetDate);
+  const now = today();
+
+  const points: WeeklyConsistencyPoint[] = [];
+  let pastIndex = 0;
+
+  for (let weekStart = start; weekStart <= target; weekStart = addDays(weekStart, 7)) {
+    const weekEnd = addDays(weekStart, 6);
+    const isCurrent = weekStart <= now && now <= weekEnd;
+    const isPast = weekEnd < now;
+
+    const completed = isPast
+      ? PAST_WEEKLY_COMPLETIONS[Math.min(pastIndex, PAST_WEEKLY_COMPLETIONS.length - 1)]
+      : isCurrent
+        ? workoutsThisWeek
+        : plannedThisWeek;
+    if (isPast) pastIndex++;
+
+    points.push({
+      label: formatShortDate(weekStart),
+      completed,
+      planned: plannedThisWeek,
+      status: isPast ? "past" : isCurrent ? "current" : "future",
+    });
+  }
+
+  return points;
+}
+
 export function computeProgressStats(goal: Goal, trajectory: TrajectoryPoint[]) {
   const todayPoint = trajectory.find((p) => p.isToday) ?? trajectory[trajectory.length - 1];
   const actualToday = todayPoint.actual ?? goal.currentValue;
