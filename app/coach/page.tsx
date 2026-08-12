@@ -85,7 +85,7 @@ export default function Coach() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Message your coach…"
-            className={`flex-1 rounded-full border-2 border-[#33465C]/15 bg-white px-4 py-2.5 text-sm text-[#26313D] focus:border-[#33465C]/40 focus:outline-none dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:text-[#EDF1F4] dark:focus:border-[#6E8CB0]/50 ${FAINT_PLACEHOLDER}`}
+            className={`flex-1 rounded-full border-2 border-[#33465C]/15 bg-white px-4 py-2.5 text-base text-[#26313D] focus:border-[#33465C]/40 focus:outline-none sm:text-sm dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:text-[#EDF1F4] dark:focus:border-[#6E8CB0]/50 ${FAINT_PLACEHOLDER}`}
           />
           <button
             type="submit"
