@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { DEFAULT_ONBOARDING, PROGRESS_ACTIVITY, TODAYS_WORKOUT, type OnboardingAnswers } from "@/lib/data";
+import { DEFAULT_ACCOUNT, DEFAULT_ONBOARDING, PROGRESS_ACTIVITY, TODAYS_WORKOUT, type Account, type OnboardingAnswers } from "@/lib/data";
+import type { CoachIconId } from "@/components/icons";
 
 type SetProgress = { done: boolean; reps: string; weight: string };
 
@@ -24,6 +25,11 @@ type AppState = {
     workoutsThisMonth: number;
     plannedThisMonth: number;
   };
+  coachIcon: CoachIconId;
+  setCoachIcon: (id: CoachIconId) => void;
+  account: Account;
+  updateAccountEmail: (email: string) => void;
+  updateAccountPassword: (password: string) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -42,6 +48,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [onboarding, setOnboarding] = useState<OnboardingAnswers>(DEFAULT_ONBOARDING);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [setProgress, setSetProgress] = useState<SetProgress[][]>(makeInitialSetProgress);
+  const [coachIcon, setCoachIcon] = useState<CoachIconId>("smiley");
+  const [account, setAccount] = useState<Account>(DEFAULT_ACCOUNT);
 
   const exerciseDone = useMemo(
     () => setProgress.map((sets) => sets.length > 0 && sets.every((set) => set.done)),
@@ -95,8 +103,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         workoutsThisMonth: PROGRESS_ACTIVITY.workoutsThisMonth + (workoutCompleted ? 1 : 0),
         plannedThisMonth: PROGRESS_ACTIVITY.plannedThisMonth,
       },
+      coachIcon,
+      setCoachIcon,
+      account,
+      updateAccountEmail: (email) => setAccount((prev) => ({ ...prev, email })),
+      updateAccountPassword: (password) => setAccount((prev) => ({ ...prev, password })),
     }),
-    [onboarding, hasOnboarded, setProgress, exerciseDone, workoutStarted, workoutCompleted]
+    [onboarding, hasOnboarded, setProgress, exerciseDone, workoutStarted, workoutCompleted, coachIcon, account]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

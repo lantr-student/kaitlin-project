@@ -42,6 +42,16 @@ export type TrajectoryPoint = {
 
 export type CoachTurn = { from: "coach" | "user"; text: string };
 
+export type Account = { email: string; password: string };
+
+// Hardcoded until real accounts/auth exist — shared by the Plan greeting and the Profile page.
+export const FIRST_NAME = "Kaitlin";
+
+export const DEFAULT_ACCOUNT: Account = {
+  email: "kaitlin@example.com",
+  password: "TrainHard24!",
+};
+
 export const GOAL_TYPES = [
   "Build strength",
   "Build muscle",

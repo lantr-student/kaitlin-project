@@ -9,6 +9,7 @@ A personal-training agent that takes a real goal, builds the plan to reach it, w
 - Ask before touching anything outside this project folder.
 - If a request is ambiguous, could apply to multiple components, needs a design detail I don't have (color, spacing, copy), or would touch shared components used elsewhere — ask one specific question before implementing.
 - Always ask questions to clarify design details
+- After a major change (bug fix, behavior/design change, feature), log it to `CHANGELOG.txt` — see below.
 
 ## What's placeholder
 - Onboarding, plan, log, progress, and coach screens are built and wired to local app state — no backend or database yet.
@@ -18,5 +19,10 @@ A personal-training agent that takes a real goal, builds the plan to reach it, w
 
 ## How to run it
 npm run dev, then open http://localhost:3000
+
+## Changelog
+`CHANGELOG.txt` has two parts with opposite editing rules:
+- **Dated log** (top, most-recent-first): permanent, append-only history. A removed feature gets a new dated entry — never edit or delete an old one.
+- **"Main changes from original"** (below the dated log): a living summary of the site's *current* state, not a history. Add to a page's section only for changes significant enough to belong in an overview; when something it describes is later removed or changed, edit/delete that bullet so it never mentions anything that no longer exists.
 
 @AGENTS.md

@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
-import { SmileyFaceIcon } from "@/components/icons";
+import { COACH_ICONS } from "@/components/icons";
 import { buildCoachTranscript, buildTrajectory, computeProgressStats, type CoachTurn } from "@/lib/data";
 import { quicksand, caveat, FAINT_BG, FAINT_PLACEHOLDER, INK, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
@@ -17,11 +17,12 @@ const HEADLINES = [
 ];
 
 export default function Coach() {
-  const { onboarding, activity } = useAppState();
+  const { onboarding, activity, coachIcon } = useAppState();
   const { goal } = onboarding;
 
   const trajectory = buildTrajectory(goal);
   const stats = computeProgressStats(goal, trajectory);
+  const CoachIcon = COACH_ICONS.find((c) => c.id === coachIcon)?.Icon ?? COACH_ICONS[0].Icon;
 
   const [messages, setMessages] = useState<CoachTurn[]>(() => buildCoachTranscript(goal, stats, activity));
   const [draft, setDraft] = useState("");
@@ -61,7 +62,7 @@ export default function Coach() {
               >
                 <div className="mb-2 flex items-center gap-2">
                   <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
-                    <SmileyFaceIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
+                    <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
                   </span>
                   <span className={`text-xs font-semibold ${FAINT}`}>Spotter Coach</span>
                 </div>

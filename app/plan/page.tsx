@@ -7,13 +7,10 @@ import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
-import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
+import { WEEKLY_PLAN, TODAYS_WORKOUT, FIRST_NAME, goalProgressPercent, type PlanDay } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const todayIndex = WEEKLY_PLAN.findIndex((d) => d.day === TODAYS_WORKOUT.day);
-
-// Hardcoded until accounts/auth exist.
-const FIRST_NAME = "Kaitlin";
 
 function timeOfDayGreeting(hour: number): string {
   if (hour < 12) return "morning";

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function FireIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden className={`fill-[#C1622E] dark:fill-[#E0916A] ${className ?? ""}`}>
@@ -30,3 +32,61 @@ export function DumbbellIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+// The rest of these share SmileyFaceIcon's viewBox and fill-current/stroke-current
+// convention so they can be swapped into the same coach-avatar slot at any color.
+export function WinkFaceIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden className={className}>
+      <circle cx="24" cy="29" r="3" className="fill-current" />
+      <path d="M36 30 Q40 26 44 30" className="fill-none stroke-current" strokeWidth="4" strokeLinecap="round" />
+      <path d="M21 38 Q32 46 43 36" className="fill-none stroke-current" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function DeterminedFaceIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden className={className}>
+      <circle cx="24" cy="29" r="3" className="fill-current" />
+      <circle cx="40" cy="29" r="3" className="fill-current" />
+      <path d="M19 21 L29 24" className="stroke-current" strokeWidth="3" strokeLinecap="round" />
+      <path d="M45 21 L35 24" className="stroke-current" strokeWidth="3" strokeLinecap="round" />
+      <path d="M22 40 L42 40" className="stroke-current" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden className={className}>
+      <path
+        d="M32 10 L38 26 L56 26 L42 37 L47 54 L32 44 L17 54 L22 37 L8 26 L26 26 Z"
+        className="fill-current"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function HeartIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden className={className}>
+      <path
+        d="M32 54 C10 38 4 24 14 16 C21 10 30 13 32 21 C34 13 43 10 50 16 C60 24 54 38 32 54 Z"
+        className="fill-current"
+      />
+    </svg>
+  );
+}
+
+export type CoachIconId = "smiley" | "wink" | "determined" | "star" | "heart";
+export type IconComponent = (props: { className?: string }) => ReactNode;
+
+export const COACH_ICONS: { id: CoachIconId; label: string; Icon: IconComponent }[] = [
+  { id: "smiley", label: "Classic", Icon: SmileyFaceIcon },
+  { id: "wink", label: "Wink", Icon: WinkFaceIcon },
+  { id: "determined", label: "Determined", Icon: DeterminedFaceIcon },
+  { id: "star", label: "Star", Icon: StarIcon },
+  { id: "heart", label: "Heart", Icon: HeartIcon },
+];
