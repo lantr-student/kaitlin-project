@@ -7,7 +7,7 @@ import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
-import { WEEKLY_PLAN, TODAYS_WORKOUT, FIRST_NAME, goalProgressPercent, type PlanDay } from "@/lib/data";
+import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const todayIndex = WEEKLY_PLAN.findIndex((d) => d.day === TODAYS_WORKOUT.day);
@@ -133,7 +133,8 @@ const RING_WEEKLY = "stroke-[#4A6FA5] dark:stroke-[#8CAAD9]";
 const RING_GOAL = "stroke-[#7A5DA8] dark:stroke-[#B29BD9]";
 
 export default function Plan() {
-  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress } = useAppState();
+  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress, displayName } =
+    useAppState();
   const { goal } = onboarding;
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [headlinePicks, setHeadlinePicks] = useState<HeadlinePicks>(INITIAL_HEADLINE_PICKS);
@@ -168,7 +169,7 @@ export default function Plan() {
           <div>
             <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>This week&apos;s plan</p>
             <h1 className="mt-1 text-3xl font-bold text-[#26313D] sm:text-4xl dark:text-[#EDF1F4]">
-              Good {greeting}, {FIRST_NAME}
+              Good {greeting}, {displayName}
             </h1>
             <p className="mt-1 text-xl font-bold text-[#26313D] sm:text-2xl dark:text-[#EDF1F4]">{headline}</p>
           </div>

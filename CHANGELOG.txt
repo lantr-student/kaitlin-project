@@ -8,6 +8,11 @@ removed, so it never mentions anything that no longer exists.
 ================================================================================
 
 2026-08-11
+- Added an editable display name on the Profile page (Edit/Save next to the
+  name at the top). It's backed by new displayName/setDisplayName state on
+  AppStateProvider (defaulting to the old hardcoded FIRST_NAME), and the
+  Plan page's "Good {time of day}, {name}" greeting now reads from that
+  same state, so a rename shows up there too.
 - Added a Profile page (new 5th BottomNav tab). Shows streak/goal stats, the
   training profile entered during onboarding (view-only), an editable login
   email/password (fake, local-only — no real auth yet), and a picker for the
@@ -121,9 +126,9 @@ Coach page
 Profile page (new)
 - New page (5th BottomNav tab) with streak/goal stats and the training
   profile entered during onboarding (view-only).
-- Also added editable login credentials (fake, local-only) and a picker
-  for the Coach chat avatar with five new mascot icons.
-- Can change the coach icon across all pages.
+- Also added an editable display name, editable login credentials (fake,
+  local-only), and a picker for the Coach chat avatar with five new
+  mascot icons — shown across the app wherever the coach appears.
 
 Data layer (lib/data.ts)
 - Same core shape (goal, plan day, trajectory point, coach turn types),

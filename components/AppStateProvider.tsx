@@ -1,7 +1,15 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { DEFAULT_ACCOUNT, DEFAULT_ONBOARDING, PROGRESS_ACTIVITY, TODAYS_WORKOUT, type Account, type OnboardingAnswers } from "@/lib/data";
+import {
+  DEFAULT_ACCOUNT,
+  DEFAULT_ONBOARDING,
+  FIRST_NAME,
+  PROGRESS_ACTIVITY,
+  TODAYS_WORKOUT,
+  type Account,
+  type OnboardingAnswers,
+} from "@/lib/data";
 import type { CoachIconId } from "@/components/icons";
 
 type SetProgress = { done: boolean; reps: string; weight: string };
@@ -30,6 +38,8 @@ type AppState = {
   account: Account;
   updateAccountEmail: (email: string) => void;
   updateAccountPassword: (password: string) => void;
+  displayName: string;
+  setDisplayName: (name: string) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -50,6 +60,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [setProgress, setSetProgress] = useState<SetProgress[][]>(makeInitialSetProgress);
   const [coachIcon, setCoachIcon] = useState<CoachIconId>("smiley");
   const [account, setAccount] = useState<Account>(DEFAULT_ACCOUNT);
+  const [displayName, setDisplayName] = useState(FIRST_NAME);
 
   const exerciseDone = useMemo(
     () => setProgress.map((sets) => sets.length > 0 && sets.every((set) => set.done)),
@@ -108,8 +119,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       account,
       updateAccountEmail: (email) => setAccount((prev) => ({ ...prev, email })),
       updateAccountPassword: (password) => setAccount((prev) => ({ ...prev, password })),
+      displayName,
+      setDisplayName,
     }),
-    [onboarding, hasOnboarded, setProgress, exerciseDone, workoutStarted, workoutCompleted, coachIcon, account]
+    [
+      onboarding,
+      hasOnboarded,
+      setProgress,
+      exerciseDone,
+      workoutStarted,
+      workoutCompleted,
+      coachIcon,
+      account,
+      displayName,
+    ]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -4,21 +4,32 @@ import { useState, type ReactNode } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { CheckIcon } from "@/components/Checkbox";
-import { COACH_ICONS, DumbbellIcon, FireIcon } from "@/components/icons";
-import { FIRST_NAME, goalProgressPercent } from "@/lib/data";
+import { COACH_ICONS, DumbbellIcon, FireIcon, PencilIcon } from "@/components/icons";
+import { goalProgressPercent } from "@/lib/data";
 import { quicksand, caveat, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 const CARD = "rounded-3xl border-2 border-[#33465C]/15 bg-white p-6 shadow-sm shadow-black/5 sm:p-8 dark:border-[#6E8CB0]/20 dark:bg-[#1E2630] dark:shadow-black/20";
 const INPUT_CLASS =
   "w-full rounded-xl bg-[#F4F6F7] px-3 py-3 text-sm text-[#26313D] shadow-sm shadow-black/5 focus:outline-none focus:ring-2 focus:ring-[#33465C]/30 dark:bg-[#242C36] dark:text-[#EDF1F4] dark:focus:ring-[#6E8CB0]/30";
+const EDIT_BUTTON =
+  "flex-none text-[#33465C] transition-colors hover:text-[#26313D] dark:text-[#9AA6B0] dark:hover:text-[#EDF1F4]";
 
 function formatLongDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
 export default function Profile() {
-  const { onboarding, activity, account, updateAccountEmail, updateAccountPassword, coachIcon, setCoachIcon } =
-    useAppState();
+  const {
+    onboarding,
+    activity,
+    account,
+    updateAccountEmail,
+    updateAccountPassword,
+    coachIcon,
+    setCoachIcon,
+    displayName,
+    setDisplayName,
+  } = useAppState();
   const { goal, goalType, experience, daysPerWeek, equipment } = onboarding;
 
   const goalPercent = goalProgressPercent(goal);
@@ -27,7 +38,7 @@ export default function Profile() {
     <div className={`flex min-h-dvh flex-col bg-[#F4F6F7] dark:bg-[#141A21] ${quicksand.className}`}>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-8 pt-8 sm:px-6 sm:pt-14">
         <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>Your profile</p>
-        <h1 className={`mt-1 text-2xl font-bold sm:text-3xl ${INK}`}>{FIRST_NAME}</h1>
+        <DisplayNameHeader name={displayName} onSave={setDisplayName} />
         <p className={`mt-1 text-sm ${MUTED}`}>Member since {formatLongDate(goal.startDate)}</p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -101,6 +112,55 @@ export default function Profile() {
   );
 }
 
+function DisplayNameHeader({ name, onSave }: { name: string; onSave: (name: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+
+  function startEditing() {
+    setDraft(name);
+    setEditing(true);
+  }
+
+  function handleSave() {
+    const trimmed = draft.trim();
+    if (trimmed) onSave(trimmed);
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          autoFocus
+          className={`${INPUT_CLASS} max-w-[14rem]`}
+        />
+        <button type="button" onClick={handleSave} className={`${PRIMARY_BUTTON} px-4 py-1.5 text-sm`}>
+          <span>Save</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          className="rounded-full px-3 py-1.5 text-sm font-semibold text-[#33465C] transition-colors hover:bg-[#33465C]/5 dark:text-[#9AA6B0] dark:hover:bg-white/5"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1 flex items-center gap-2">
+      <h1 className={`text-2xl font-bold sm:text-3xl ${INK}`}>{name}</h1>
+      <button type="button" onClick={startEditing} aria-label="Edit display name" className={EDIT_BUTTON}>
+        <PencilIcon className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
 function StatTile({ icon, label, value }: { icon?: ReactNode; label: string; value: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-[#33465C]/15 bg-white px-3 py-4 text-center dark:border-[#6E8CB0]/20 dark:bg-[#1E2630]">
@@ -170,12 +230,8 @@ function AccountSection({
           <p className={`text-sm ${FAINT}`}>Your email and password for signing in.</p>
         </div>
         {!editing && (
-          <button
-            type="button"
-            onClick={startEditing}
-            className="flex-none rounded-full border-2 border-[#33465C]/20 px-4 py-1.5 text-sm font-semibold text-[#33465C] transition-colors hover:bg-[#33465C]/5 dark:border-[#6E8CB0]/30 dark:text-[#9AA6B0] dark:hover:bg-white/5"
-          >
-            Edit
+          <button type="button" onClick={startEditing} aria-label="Edit login" className={EDIT_BUTTON}>
+            <PencilIcon className="h-5 w-5" />
           </button>
         )}
       </div>

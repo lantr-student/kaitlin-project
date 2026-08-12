@@ -80,6 +80,20 @@ export function HeartIcon({ className }: { className?: string }) {
   );
 }
 
+export function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden className={className}>
+      <path
+        d="M13.5 3.5a1.5 1.5 0 0 1 2 2L7 14 4 15l1-3Z"
+        className="fill-none stroke-current"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export type CoachIconId = "smiley" | "wink" | "determined" | "star" | "heart";
 export type IconComponent = (props: { className?: string }) => ReactNode;
 
