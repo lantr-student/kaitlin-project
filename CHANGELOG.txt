@@ -7,6 +7,11 @@ removed, so it never mentions anything that no longer exists.
 
 ================================================================================
 
+2026-08-13
+- Enabled CORS on the backend API, restricted to exactly the deployed
+  frontend origin (https://spotter-app-nu.vercel.app) and the local dev
+  server (http://localhost:3000) — no wildcard.
+
 2026-08-11
 - Fixed the Log page overflowing horizontally on mobile for exercises with
   longer names (e.g. "Walking Lunges"). Same root cause as the earlier Plan

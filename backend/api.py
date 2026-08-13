@@ -1,10 +1,21 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from main import build_agent, get_reply
 
 app = FastAPI()
 agent = build_agent()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://spotter-app-nu.vercel.app",
+        "http://localhost:3000",
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 class ChatRequest(BaseModel):
