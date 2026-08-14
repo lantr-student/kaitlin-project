@@ -132,7 +132,7 @@ export default function LogWorkout() {
             <StickyNote label="Coach's notes" text={activeTodaysWorkout.coachNote} />
 
             <Link href="/coach" className={`${PRIMARY_BUTTON} flex-none`}>
-              <span>Ask coach</span>
+              <span>Talk to coach</span>
               <span aria-hidden>→</span>
             </Link>
           </div>

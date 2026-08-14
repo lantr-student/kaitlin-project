@@ -7,7 +7,7 @@ import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
-import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
+import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, thisWeekRangeLabel, type PlanDay } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 function timeOfDayGreeting(hour: number): string {
@@ -168,7 +168,9 @@ export default function Plan() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-8 pt-8 sm:px-6 sm:pt-14">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
           <div>
-            <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>This week&apos;s plan</p>
+            <p className={`text-lg text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>
+              Your plan for {thisWeekRangeLabel()}
+            </p>
             <h1 className="mt-1 text-3xl font-bold text-[#26313D] sm:text-4xl dark:text-[#EDF1F4]">
               Good {greeting}, {displayName}
             </h1>

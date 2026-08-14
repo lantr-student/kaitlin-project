@@ -345,6 +345,24 @@ export function today(): Date {
   return parseISODate(TODAY_ISO);
 }
 
+function mondayOf(date: Date): Date {
+  const day = date.getDay(); // 0 (Sun) - 6 (Sat)
+  const offset = day === 0 ? -6 : 1 - day;
+  return addDays(date, offset);
+}
+
+function formatSlashDate(date: Date): string {
+  const yy = String(date.getFullYear() % 100).padStart(2, "0");
+  return `${date.getMonth() + 1}/${date.getDate()}/${yy}`;
+}
+
+/** Date range (Monday-Sunday) of the week containing "today", e.g. "8/3/26-8/9/26". */
+export function thisWeekRangeLabel(): string {
+  const monday = mondayOf(today());
+  const sunday = addDays(monday, 6);
+  return `${formatSlashDate(monday)}-${formatSlashDate(sunday)}`;
+}
+
 function isHigherBetter(goal: Goal): boolean {
   return goal.targetValue >= goal.startValue;
 }

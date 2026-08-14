@@ -7,8 +7,8 @@ import { FAINT } from "@/lib/theme";
 const TABS = [
   { href: "/plan", label: "Plan" },
   { href: "/log", label: "Log" },
-  { href: "/progress", label: "Progress" },
   { href: "/coach", label: "Coach" },
+  { href: "/progress", label: "Progress" },
   { href: "/profile", label: "Profile" },
 ];
 
@@ -17,18 +17,24 @@ export default function BottomNav() {
 
   return (
     <nav className="sticky bottom-0 inset-x-0 border-t border-[#33465C]/15 bg-white/95 backdrop-blur dark:border-[#6E8CB0]/20 dark:bg-[#1E2630]/95">
-      <div className="mx-auto flex max-w-4xl items-stretch justify-around px-6 sm:justify-center sm:gap-10">
+      <div className="mx-auto flex max-w-4xl items-stretch justify-around px-6 sm:justify-center sm:gap-6">
         {TABS.map((tab) => {
           const active = pathname === tab.href;
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-1 items-center justify-center py-3.5 text-xs font-medium transition-colors sm:flex-none sm:px-2 sm:text-sm ${
-                active ? "text-[#33465C] dark:text-[#6E8CB0]" : `${FAINT} hover:text-[#33465C] dark:hover:text-[#6E8CB0]`
-              }`}
+              className="flex flex-1 items-center justify-center py-2.5 text-xs font-medium sm:flex-none sm:px-2 sm:text-sm"
             >
-              {tab.label}
+              <span
+                className={`rounded-xl px-3.5 py-1.5 transition-colors ${
+                  active
+                    ? "bg-[#33465C]/10 font-semibold text-[#33465C] dark:bg-[#6E8CB0]/15 dark:text-[#6E8CB0]"
+                    : `${FAINT} hover:text-[#33465C] dark:hover:text-[#6E8CB0]`
+                }`}
+              >
+                {tab.label}
+              </span>
             </Link>
           );
         })}
