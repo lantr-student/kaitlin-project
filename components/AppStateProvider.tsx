@@ -7,6 +7,7 @@ import {
   FIRST_NAME,
   PROGRESS_ACTIVITY,
   TODAYS_WORKOUT,
+  WEEKLY_PLAN,
   type Account,
   type OnboardingAnswers,
   type PlanDay,
@@ -23,6 +24,7 @@ type AppState = {
   weeklyPlan: PlanDay[] | null;
   isPlanLoading: boolean;
   planError: string | null;
+  swapExercise: (exerciseIndex: number, name: string) => void;
   setProgress: SetProgress[][];
   toggleSet: (exerciseIndex: number, setIndex: number) => void;
   updateSetField: (exerciseIndex: number, setIndex: number, field: "reps" | "weight", value: string) => void;
@@ -82,9 +84,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Re-seeds set/rep/weight progress whenever "today's workout" resolves to a
   // different object — once, redundantly, on mount, and again the moment a real
-  // fetched plan replaces the mock.
+  // fetched plan replaces the mock. Skipped when the exercise count is unchanged
+  // (e.g. a same-day exercise swap/rename) so logged sets aren't wiped out by an
+  // edit to a single exercise.
   useEffect(() => {
-    setSetProgress(makeInitialSetProgress(resolvedTodaysWorkout));
+    setSetProgress((prev) =>
+      prev.length === resolvedTodaysWorkout.exercises.length ? prev : makeInitialSetProgress(resolvedTodaysWorkout)
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-seed when the resolved workout itself changes
   }, [resolvedTodaysWorkout]);
 
@@ -134,6 +140,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       weeklyPlan,
       isPlanLoading,
       planError,
+      swapExercise: (exerciseIndex, name) => {
+        setWeeklyPlan((prev) => {
+          const base = prev ?? WEEKLY_PLAN;
+          return base.map((day, di) =>
+            di !== 2
+              ? day
+              : {
+                  ...day,
+                  exercises: day.exercises.map((ex, ei) => (ei !== exerciseIndex ? ex : { ...ex, name })),
+                }
+          );
+        });
+      },
       setProgress,
       toggleSet: (exerciseIndex, setIndex) => {
         setSetProgress((prev) =>

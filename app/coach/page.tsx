@@ -6,14 +6,13 @@ import { useAppState } from "@/components/AppStateProvider";
 import { COACH_ICONS } from "@/components/icons";
 import { type CoachTurn } from "@/lib/data";
 import { sendChatMessage, ApiError } from "@/lib/api";
-import { Spinner } from "@/components/Spinner";
+import { ThoughtBubble } from "@/components/ThoughtBubble";
 import {
   quicksand,
   caveat,
   FAINT_BG,
   FAINT_PLACEHOLDER,
   INK,
-  FAINT,
   PRIMARY_BUTTON,
   ERROR_TEXT,
   ERROR_BG,
@@ -83,30 +82,23 @@ export default function Coach() {
             turn.from === "user" ? (
               <UserBubble key={i} text={turn.text} />
             ) : (
-              <div
-                key={i}
-                className="max-w-[85%] rounded-2xl rounded-tl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20"
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
-                    <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
-                  </span>
-                  <span className={`text-xs font-semibold ${FAINT}`}>Spotter Coach</span>
+              <div key={i} className="flex items-end gap-2">
+                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
+                  <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
+                </span>
+                <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20">
+                  <p className={`text-sm ${INK}`}>{turn.text}</p>
                 </div>
-
-                <p className={`text-sm ${INK}`}>{turn.text}</p>
               </div>
             )
           )}
           {isSending && (
-            <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
-                  <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
-                </span>
-                <span className={`text-xs font-semibold ${FAINT}`}>Spotter Coach</span>
-              </div>
-              <Spinner className={`h-4 w-4 ${INK}`} />
+            <div className="flex items-end gap-1.5">
+              <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
+                <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
+              </span>
+              <span className="mb-1 h-2 w-2 flex-none rounded-full border border-[#7C9270]/60 bg-[#A9BFA0]/40 dark:border-[#A9BFA0]/60 dark:bg-[#7C9270]/40" />
+              <ThoughtBubble />
             </div>
           )}
           {sendError && (

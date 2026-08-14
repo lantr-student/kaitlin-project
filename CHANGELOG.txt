@@ -8,97 +8,56 @@ removed, so it never mentions anything that no longer exists.
 ================================================================================
 
 2026-08-13
-- Enabled CORS on the backend API, restricted to exactly the deployed
-  frontend origin (https://spotter-app-nu.vercel.app) and the local dev
-  server (http://localhost:3000) — no wildcard.
-- Wired the app to the real backend for the first time. Submitting the
-  onboarding profile now POSTs to a new backend endpoint (/plan) that
-  LLM-generates a real 7-day weekly plan from the client's goal,
-  experience, days/week, and equipment, shown on the Plan and Log pages
-  in place of the old hardcoded plan (with a loading state on "Build my
-  plan" and a retry banner if the request fails). The Coach page's
-  scripted opening conversation is gone — it now starts empty and sends
-  each typed message to the existing /chat endpoint, showing a pending
-  state and then the real reply (or an inline error on failure).
-  Progress and Profile still use the existing hardcoded history data,
-  unchanged. State is still in-memory only, so a page refresh after
-  onboarding falls back to the old hardcoded plan. Also fixed the Plan
-  page's "Start workout" button showing on a rest day — since a real
-  generated plan can land a rest day on any weekday, unlike the old
-  fixed mock, that button now only appears on today's card when today
-  is an actual training day.
+- Enabled CORS on the backend API, restricted to the deployed frontend
+  origin and localhost — no wildcard.
+- Wired the app to the real backend: onboarding now generates a real
+  weekly plan via a new /plan endpoint, and Coach chat sends messages
+  to /chat and shows the real reply. Progress and Profile still use
+  hardcoded data, and state is in-memory only. Also fixed the Plan
+  page's "Start workout" button showing up on rest days.
+- Polish pass: Plan page header shows the week's date range, Log's
+  coach button now says "Talk to coach," and the bottom nav re-centered
+  Coach with a tighter, highlighted active tab.
+- Redesigned Coach's message bubbles — dropped the "Spotter Coach"
+  label, moved the avatar outside the bubble, and replaced the spinner with
+  a "thinking" bubble animation while a reply is in flight.
+- Replaced each Log page exercise's hover tip popover with a
+  click-to-open menu (Form, Why, and Swap — Swap lists three
+  alternates targeting that exercise's own muscle group, e.g. Quads
+  for Back Squat, from a rough hardcoded pool per muscle group). Also
+  removed the Log page's slightly-tilted card look — it was trapping
+  the new menu popup behind the next exercise card, and cards are now
+  flat instead.
+- Reps and weight on the Log page are now read-only until you tap Edit
+  on that exercise, which switches its sets to editable fields with
+  Save/Cancel; reps clarifications like "each leg" or "sec" stay fixed
+  text (only the number is editable), and bodyweight exercises with no
+  target weight (e.g. Plank) no longer show a weight column at all.
 
 2026-08-11
-- Fixed the Log page overflowing horizontally on mobile for exercises with
-  longer names (e.g. "Walking Lunges"). Same root cause as the earlier Plan
-  page fix: each exercise's hover-only form-tip popover reserved layout
-  width even while invisible; it's now clamped so it never extends past
-  the screen on mobile, while keeping its original left/right placement
-  on desktop's two-column layout.
-- Added a weekly workout-consistency bar chart to the Progress page, and
-  a Trajectory/Consistency toggle (now an animated sliding switch) to
-  switch between it and the existing trajectory chart in the same spot.
-  Bars run from the goal's start date through its target date — past
-  weeks show hardcoded completions, the current week updates live,
-  future weeks show the planned pace as a dashed projection. Also added
-  dot markers along the full trajectory chart's lines (previously only
-  the two endpoint markers had dots), made both charts bigger, and
-  locked the page to the viewport height on desktop like Log and Coach
-  (no page-level scroll; the chart card flexes to fill the remaining
-  space) while tightening header/chart spacing and shrinking the stat
-  tiles to make room.
-- Fixed the Coach page's message input auto-zooming on focus in iOS Safari.
-  Now 16px on mobile, above the cutoff, and back to 14px on desktop.
-- The Coach chat now auto-scrolls to the latest message, both on page load
-  and as new messages are sent/received, instead of staying pinned to the
-  top of the conversation.
-- Added an editable display name on the Profile page (Edit/Save next to the
-  name at the top). It's backed by new displayName/setDisplayName state on
-  AppStateProvider (defaulting to the old hardcoded FIRST_NAME), and the
-  Plan page's "Good {time of day}, {name}" greeting now reads from that
-  same state, so a rename shows up there too.
-- Added a Profile page (new 5th BottomNav tab), with six stat tiles —
-  current streak, longest streak, workouts completed, percent to goal,
-  target pace, and total weight moved — the training profile entered
-  during onboarding (view-only), an editable login email/password (fake,
-  local-only — no real auth yet), and a picker for the Coach chat avatar
-  with five new mascot icons (Classic, Wink, Determined, Star, Heart)
-  added to components/icons.tsx. Selecting one updates the avatar shown
-  in Coach chat bubbles immediately, via new coachIcon/account state on
-  AppStateProvider. Moved the hardcoded FIRST_NAME constant from the Plan
-  page into lib/data.ts so Profile and Plan share one source.
-- Revised the Profile page's streak numbers for consistency: the current
-  streak is now 16 days, tied with the longest streak on record (also
-  16) instead of trailing it — so finishing today's workout sets a new
-  all-time record (17) rather than just extending toward one.
-- The Coach page header no longer always says "This week's check-in" — it now
-  picks randomly from a set of six short prompts ("How's training going?",
-  "What's on your mind?", etc.) each page load, the same rotating-headline
-  pattern already used on the Plan page.
-- Fixed the Plan page overflowing horizontally on mobile, which left a wide
-  strip of empty gray space on the right of the screen. The hidden
-  hover-preview tooltip on each small day card was sized and positioned for
-  desktop's side-by-side layout but still occupied layout width even while
-  invisible on mobile; it's now removed from layout entirely below the sm
-  breakpoint and only reappears for desktop's hover behavior.
-- Coach's notes on the Plan page are no longer editable. The sticky note now
-  always renders as read-only text, matching how it already worked on the Log
-  page. Removed the now-unused `editable` prop/textarea path from the
-  StickyNote component since nothing used it anymore.
+- Fixed the Log page overflowing horizontally on mobile for long
+  exercise names.
+- Added a weekly workout-consistency bar chart to the Progress page
+  with a toggle to switch between it and the trajectory chart, plus
+  visual polish (dot markers, bigger charts, locked desktop height).
+- Fixed the Coach input auto-zooming on iOS Safari, and the chat now
+  auto-scrolls to the latest message.
+- Added an editable display name and a new Profile page (stat tiles,
+  training profile summary, login credentials, coach avatar picker).
+- Tuned the Profile page's streak numbers for consistency, and made
+  the Coach header rotate through a few short prompts instead of
+  staying fixed, matching the Plan page's existing rotating headlines.
+- Fixed the Plan page overflowing horizontally on mobile, and made the
+  Plan page's coach note read-only, matching the Log page.
 
 2026-08-10
-- Fixed the Log page being locked to a fixed viewport height on small
-  screens, which made it impossible to scroll down through today's full
-  exercise list on mobile. The page now scrolls normally below the desktop
-  breakpoint; the fixed, no-scroll dashboard layout on larger screens is
-  unchanged.
+- Fixed the Log page being locked to a fixed viewport height on
+  mobile, which blocked scrolling through the full exercise list.
 
 2026-08-08
-- Reworked the Progress page's trajectory chart hover behavior. The info
-  box used to render below the chart and shift the whole page layout on
-  every hover; it's now a small floating tooltip positioned on the graph
-  itself, next to the mouse, so hovering no longer disturbs page
-  orientation.
+- Reworked the Progress page's trajectory chart hover into a small
+  floating tooltip on the graph, instead of a box below it that
+  shifted the page layout on every hover.
 
 
 Main changes from original (current state of the site)
@@ -149,14 +108,21 @@ Plan page (largest rewrite — 71 → ~400 lines)
 
 Log page (91 → ~240 lines)
 - Went from a plain list of sets to a "workout notebook" layout — each
-  exercise is its own slightly-tilted card with a form-tip popover, a
+  exercise is its own card with a per-exercise options menu, a
   StickyNote-styled coach comment, and per-exercise progress rings.
 - Fixed the page being locked to a fixed viewport height, which blocked
   scrolling on small screens.
-- Fixed a hover-only form-tip popover reserving off-screen layout width
-  on mobile for longer exercise names, causing horizontal overflow.
 - Today's workout now comes from the same backend-generated plan as the
   Plan page (same mock fallback when none exists yet).
+- Each exercise's lightbulb button opens a small click-to-open menu with
+  three options — Form (form tips), Why (why it's in today's plan), and Swap,
+  which opens a list of three alternate exercises for that muscle group (with
+  a refresh button) to actually replace it.
+- Reps and weight are read-only until you tap Edit, which switches that
+  exercise's sets into an editable state with Save/Cancel. Reps
+  clarifications like "each leg" stay fixed text — only the number is
+  editable — and bodyweight exercises with no target weight show no
+  weight column at all.
 
 Checking off an exercise on the Plan page bulk-toggles its sets
 - AppStateProvider derives exerciseDone automatically (true once every set
@@ -197,6 +163,9 @@ Coach page
   and each message you send goes to the real /chat backend endpoint,
   with a pending state while waiting and the real reply appended when
   it arrives (or an inline error if the request fails).
+- While waiting for a reply, the Coach avatar icon connects through a small
+  circle to a rounded "thinking" bubble with three bouncing dots, which
+  resolves into the real reply bubble once it arrives.
 
 Profile page (new)
 - New page (5th BottomNav tab) with six stat tiles, each with its own

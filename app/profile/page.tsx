@@ -278,15 +278,15 @@ function AccountSection({
           </label>
 
           <div className="flex gap-3 pt-1">
+            <button type="button" onClick={handleSave} className={`${PRIMARY_BUTTON} flex-1 justify-center py-3`}>
+              <span>Save</span>
+            </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
               className="flex-1 rounded-full bg-transparent py-3 text-sm font-semibold text-[#33465C] transition-colors hover:bg-[#33465C]/5 dark:text-[#9AA6B0] dark:hover:bg-white/5"
             >
               Cancel
-            </button>
-            <button type="button" onClick={handleSave} className={`${PRIMARY_BUTTON} flex-1 justify-center py-3`}>
-              <span>Save</span>
             </button>
           </div>
         </div>

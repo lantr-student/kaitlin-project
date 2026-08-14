@@ -5,6 +5,9 @@ export type Exercise = {
   rest: string;
   targetWeight?: number;
   formTip: string;
+  // Rough for now (not yet returned by the backend for real generated plans) —
+  // used to label the Log page's "Other exercises for ___" swap menu.
+  muscleGroup?: string;
 };
 
 export type PlanDay = {
@@ -106,6 +109,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Bench Press",
+        muscleGroup: "Chest",
         sets: 4,
         reps: "6",
         rest: "2 min",
@@ -114,6 +118,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Overhead Press",
+        muscleGroup: "Shoulders",
         sets: 3,
         reps: "8",
         rest: "90 sec",
@@ -122,6 +127,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Incline Dumbbell Press",
+        muscleGroup: "Chest",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -130,6 +136,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Triceps Pushdown",
+        muscleGroup: "Triceps",
         sets: 3,
         reps: "12",
         rest: "60 sec",
@@ -153,6 +160,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Back Squat",
+        muscleGroup: "Quads",
         sets: 4,
         reps: "6",
         rest: "2 min",
@@ -161,6 +169,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Romanian Deadlift",
+        muscleGroup: "Hamstrings",
         sets: 3,
         reps: "8",
         rest: "90 sec",
@@ -170,6 +179,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Walking Lunges",
+        muscleGroup: "Quads",
         sets: 3,
         reps: "12 each leg",
         rest: "60 sec",
@@ -178,6 +188,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Leg Press",
+        muscleGroup: "Quads",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -186,6 +197,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Plank",
+        muscleGroup: "Core",
         sets: 3,
         reps: "45 sec",
         rest: "45 sec",
@@ -208,6 +220,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Barbell Row",
+        muscleGroup: "Back",
         sets: 4,
         reps: "8",
         rest: "90 sec",
@@ -216,6 +229,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Lat Pulldown",
+        muscleGroup: "Back",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -224,6 +238,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Seated Cable Row",
+        muscleGroup: "Back",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -232,6 +247,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Barbell Curl",
+        muscleGroup: "Biceps",
         sets: 3,
         reps: "12",
         rest: "60 sec",
@@ -248,6 +264,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Trap Bar Deadlift",
+        muscleGroup: "Full Body",
         sets: 3,
         reps: "6",
         rest: "2 min",
@@ -256,6 +273,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Dumbbell Shoulder Press",
+        muscleGroup: "Shoulders",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -264,6 +282,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Cable Face Pull",
+        muscleGroup: "Rear Delts",
         sets: 3,
         reps: "15",
         rest: "60 sec",
@@ -272,6 +291,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Farmer's Carry",
+        muscleGroup: "Grip/Core",
         sets: 3,
         reps: "40 yd",
         rest: "60 sec",
@@ -292,6 +312,29 @@ export const WEEKLY_PLAN: PlanDay[] = [
 ];
 
 export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
+
+// Rough hardcoded alternate-exercise pools for the Log page's swap menu, keyed
+// by muscle group so alternates actually target the same muscle as the
+// exercise being swapped. Real generated exercises don't have a muscleGroup
+// yet, so DEFAULT_ALTERNATES covers that fallback case.
+const ALTERNATES_BY_MUSCLE_GROUP: Record<string, string[]> = {
+  Chest: ["Push-Up", "Cable Chest Fly", "Incline Dumbbell Press", "Dips", "Chest Press Machine", "Landmine Press"],
+  Shoulders: ["Arnold Press", "Lateral Raise", "Cable Front Raise", "Pike Push-Up", "Landmine Press"],
+  Triceps: ["Skull Crusher", "Overhead Triceps Extension", "Close-Grip Bench Press", "Dips", "Cable Kickback"],
+  Quads: ["Goblet Squat", "Leg Extension", "Bulgarian Split Squat", "Step-Up", "Hack Squat"],
+  Hamstrings: ["Leg Curl", "Good Morning", "Glute-Ham Raise", "Single-Leg RDL", "Kettlebell Swing"],
+  Core: ["Hollow Hold", "Cable Crunch", "Side Plank", "Dead Bug", "Ab Wheel Rollout"],
+  Back: ["Pull-Up", "Chest-Supported Row", "Straight-Arm Pulldown", "T-Bar Row", "Face Pull"],
+  Biceps: ["Hammer Curl", "Incline Dumbbell Curl", "Cable Curl", "Preacher Curl", "Concentration Curl"],
+  "Full Body": ["Kettlebell Swing", "Renegade Row", "Turkish Get-Up", "Battle Ropes", "Sled Push"],
+  "Rear Delts": ["Reverse Fly", "Face Pull", "Band Pull-Apart", "Rear Delt Row"],
+  "Grip/Core": ["Farmer's Carry", "Suitcase Carry", "Dead Hang", "Plank"],
+};
+const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", "Kettlebell Swing", "Reverse Lunge"];
+
+export function alternatesForMuscleGroup(muscleGroup: string): string[] {
+  return ALTERNATES_BY_MUSCLE_GROUP[muscleGroup] ?? DEFAULT_ALTERNATES;
+}
 
 export const PROGRESS_ACTIVITY = {
   // Consecutive workout days completed with none missed — resets to 0 the moment a
