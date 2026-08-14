@@ -33,6 +33,13 @@ removed, so it never mentions anything that no longer exists.
   Save/Cancel; reps clarifications like "each leg" or "sec" stay fixed
   text (only the number is editable), and bodyweight exercises with no
   target weight (e.g. Plank) no longer show a weight column at all.
+- Cleanup pass across today's changes: "today's workout" is now
+  resolved once in AppStateProvider and exposed from context instead
+  of being recomputed on the Plan and Log pages separately; the
+  duplicated set-progress type and a repeated coach-bubble color were
+  each consolidated into one shared definition; and the backend now
+  reuses one LLM client for both chat and plan generation instead of
+  building two.
 
 2026-08-11
 - Fixed the Log page overflowing horizontally on mobile for long

@@ -10,6 +10,8 @@ export type Exercise = {
   muscleGroup?: string;
 };
 
+export type SetProgress = { done: boolean; reps: string; weight: string };
+
 export type PlanDay = {
   day: string;
   focus: string;

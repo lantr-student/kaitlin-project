@@ -7,7 +7,7 @@ import { Checkbox, CheckIcon } from "@/components/Checkbox";
 import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useAppState } from "@/components/AppStateProvider";
-import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, thisWeekRangeLabel, type PlanDay } from "@/lib/data";
+import { WEEKLY_PLAN, goalProgressPercent, thisWeekRangeLabel, type PlanDay } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 function timeOfDayGreeting(hour: number): string {
@@ -131,12 +131,20 @@ const RING_WEEKLY = "stroke-[#4A6FA5] dark:stroke-[#8CAAD9]";
 const RING_GOAL = "stroke-[#7A5DA8] dark:stroke-[#B29BD9]";
 
 export default function Plan() {
-  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress, displayName, weeklyPlan } =
-    useAppState();
+  const {
+    onboarding,
+    exerciseDone,
+    toggleExercise,
+    workoutStarted,
+    activity,
+    setProgress,
+    displayName,
+    weeklyPlan,
+    todaysWorkout,
+  } = useAppState();
   const { goal } = onboarding;
   const activeWeeklyPlan = weeklyPlan ?? WEEKLY_PLAN;
-  const activeTodaysWorkout = weeklyPlan ? weeklyPlan[2] : TODAYS_WORKOUT;
-  const todayIndex = activeWeeklyPlan.findIndex((d) => d.day === activeTodaysWorkout.day);
+  const todayIndex = activeWeeklyPlan.findIndex((d) => d.day === todaysWorkout.day);
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [headlinePicks, setHeadlinePicks] = useState<HeadlinePicks>(INITIAL_HEADLINE_PICKS);
   const selectedDay = activeWeeklyPlan[selectedDayIndex];

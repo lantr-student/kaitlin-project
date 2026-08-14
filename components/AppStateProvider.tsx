@@ -11,17 +11,22 @@ import {
   type Account,
   type OnboardingAnswers,
   type PlanDay,
+  type SetProgress,
 } from "@/lib/data";
 import type { CoachIconId } from "@/components/icons";
 import { fetchPlan, ApiError } from "@/lib/api";
 
-type SetProgress = { done: boolean; reps: string; weight: string };
+// A real fetched plan is always Monday-first per the backend's /plan contract,
+// and the mock WEEKLY_PLAN follows the same convention, so index 2 (Wednesday)
+// is "today" for either source.
+const TODAY_INDEX = 2;
 
 type AppState = {
   onboarding: OnboardingAnswers;
   hasOnboarded: boolean;
   completeOnboarding: (answers: OnboardingAnswers) => Promise<void>;
   weeklyPlan: PlanDay[] | null;
+  todaysWorkout: PlanDay;
   isPlanLoading: boolean;
   planError: string | null;
   swapExercise: (exerciseIndex: number, name: string) => void;
@@ -70,10 +75,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
 
-  // Convention preserved from the mock data: index 2 is "today" (Wednesday in the
-  // hardcoded WEEKLY_PLAN). A real fetched plan is always Monday-first per the
-  // backend's /plan contract, so index 2 still resolves to the correct weekday.
-  const resolvedTodaysWorkout = weeklyPlan ? weeklyPlan[2] : TODAYS_WORKOUT;
+  const resolvedTodaysWorkout = weeklyPlan ? weeklyPlan[TODAY_INDEX] : TODAYS_WORKOUT;
 
   const [setProgress, setSetProgress] = useState<SetProgress[][]>(() =>
     makeInitialSetProgress(resolvedTodaysWorkout)
@@ -138,13 +140,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
       },
       weeklyPlan,
+      todaysWorkout: resolvedTodaysWorkout,
       isPlanLoading,
       planError,
       swapExercise: (exerciseIndex, name) => {
         setWeeklyPlan((prev) => {
           const base = prev ?? WEEKLY_PLAN;
           return base.map((day, di) =>
-            di !== 2
+            di !== TODAY_INDEX
               ? day
               : {
                   ...day,

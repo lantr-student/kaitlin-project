@@ -8,17 +8,14 @@ import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { PencilIcon } from "@/components/icons";
 import { useAppState } from "@/components/AppStateProvider";
-import { TODAYS_WORKOUT, alternatesForMuscleGroup, type Exercise } from "@/lib/data";
+import { alternatesForMuscleGroup, type Exercise, type SetProgress } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
-type SetProgress = { done: boolean; reps: string; weight: string };
-
 export default function LogWorkout() {
-  const { setProgress, toggleSet, updateSetField, exerciseDone, weeklyPlan, onboarding, swapExercise } =
+  const { setProgress, toggleSet, updateSetField, exerciseDone, todaysWorkout, onboarding, swapExercise } =
     useAppState();
-  const activeTodaysWorkout = weeklyPlan ? weeklyPlan[2] : TODAYS_WORKOUT;
-  const lastRow = Math.ceil(activeTodaysWorkout.exercises.length / 2) - 1;
-  const whyText = `Part of today's ${activeTodaysWorkout.focus} work, chosen to help move you toward your ${onboarding.goalType.toLowerCase()} goal.`;
+  const lastRow = Math.ceil(todaysWorkout.exercises.length / 2) - 1;
+  const whyText = `Part of today's ${todaysWorkout.focus} work, chosen to help move you toward your ${onboarding.goalType.toLowerCase()} goal.`;
 
   const totalSets = setProgress.reduce((sum, sets) => sum + sets.length, 0);
   const doneSets = setProgress.reduce((sum, sets) => sum + sets.filter((s) => s.done).length, 0);
@@ -31,14 +28,14 @@ export default function LogWorkout() {
         <div className="flex flex-none items-center justify-between gap-3">
           <div className="flex-none">
             <p className={`text-lg leading-none text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>
-              {activeTodaysWorkout.day} · Today
+              {todaysWorkout.day} · Today
             </p>
-            <h1 className={`mt-1 text-xl font-bold sm:text-2xl ${INK}`}>{activeTodaysWorkout.focus}</h1>
+            <h1 className={`mt-1 text-xl font-bold sm:text-2xl ${INK}`}>{todaysWorkout.focus}</h1>
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
             <div className="flex min-w-0 items-start gap-5 overflow-x-auto">
-              {activeTodaysWorkout.exercises.map((exercise, exerciseIndex) => {
+              {todaysWorkout.exercises.map((exercise, exerciseIndex) => {
                 const sets = setProgress[exerciseIndex] ?? [];
                 const doneCount = sets.filter((s) => s.done).length;
                 const complete = exerciseDone[exerciseIndex] ?? false;
@@ -88,10 +85,10 @@ export default function LogWorkout() {
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-3 pb-4 sm:min-h-0 sm:flex-1 sm:grid-cols-2 sm:grid-rows-3 sm:gap-4 sm:pb-6">
-          {activeTodaysWorkout.exercises.map((exercise, exerciseIndex) => {
+          {todaysWorkout.exercises.map((exercise, exerciseIndex) => {
             const isLastRow = Math.floor(exerciseIndex / 2) === lastRow;
             const openLeft = exerciseIndex % 2 === 1;
-            const muscleGroup = exercise.muscleGroup ?? activeTodaysWorkout.focus;
+            const muscleGroup = exercise.muscleGroup ?? todaysWorkout.focus;
             return (
               <NotebookSection
                 key={exercise.name}
@@ -111,7 +108,7 @@ export default function LogWorkout() {
           })}
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <StickyNote label="Coach's notes" text={activeTodaysWorkout.coachNote} />
+            <StickyNote label="Coach's notes" text={todaysWorkout.coachNote} />
 
             <Link href="/coach" className={`${PRIMARY_BUTTON} flex-none`}>
               <span>Talk to coach</span>

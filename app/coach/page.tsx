@@ -10,12 +10,13 @@ import { ThoughtBubble } from "@/components/ThoughtBubble";
 import {
   quicksand,
   caveat,
-  FAINT_BG,
   FAINT_PLACEHOLDER,
   INK,
   PRIMARY_BUTTON,
   ERROR_TEXT,
   ERROR_BG,
+  COACH_ACCENT_BORDER,
+  COACH_ACCENT_BG,
 } from "@/lib/theme";
 
 const HEADLINES = [
@@ -86,7 +87,7 @@ export default function Coach() {
                 <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
                   <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
                 </span>
-                <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20">
+                <div className={`max-w-[85%] rounded-2xl rounded-bl-sm border ${COACH_ACCENT_BORDER} ${COACH_ACCENT_BG} p-4 sm:p-5`}>
                   <p className={`text-sm ${INK}`}>{turn.text}</p>
                 </div>
               </div>
@@ -97,7 +98,7 @@ export default function Coach() {
               <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
                 <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
               </span>
-              <span className="mb-1 h-2 w-2 flex-none rounded-full border border-[#7C9270]/60 bg-[#A9BFA0]/40 dark:border-[#A9BFA0]/60 dark:bg-[#7C9270]/40" />
+              <span className="mb-1 h-2 w-2 flex-none rounded-full border border-[#5A7291]/50 bg-[#8FA3B8]/40 dark:border-[#8FA3B8]/60 dark:bg-[#5A7291]/40" />
               <ThoughtBubble />
             </div>
           )}
@@ -135,7 +136,7 @@ function UserBubble({ text }: { text: string }) {
   return (
     <div className="flex justify-end">
       <div
-        className={`max-w-[85%] rounded-2xl rounded-tr-sm border border-[#33465C]/10 px-4 py-2.5 text-sm ${INK} dark:border-[#6E8CB0]/15 ${FAINT_BG}`}
+        className={`max-w-[85%] rounded-2xl rounded-tr-sm border border-[#33465C]/10 bg-white px-4 py-2.5 text-sm shadow-sm shadow-black/5 ${INK} dark:border-[#6E8CB0]/15 dark:bg-[#1E2630] dark:shadow-black/20`}
       >
         {text}
       </div>

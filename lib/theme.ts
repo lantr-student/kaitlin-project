@@ -25,3 +25,10 @@ export const PRIMARY_BUTTON =
 // existed anywhere in the app before real network calls were wired in.
 export const ERROR_TEXT = "text-[#B5503C] dark:text-[#E8A796]";
 export const ERROR_BG = "bg-[#B5503C]/10 border border-[#B5503C]/30 dark:bg-[#B5503C]/10 dark:border-[#B5503C]/25";
+
+// Coach page's blue-gray accent — shared by the real reply bubble and the
+// pending "thinking" bubble (border/background), plus the thinking bubble's
+// bouncing dots.
+export const COACH_ACCENT_BORDER = "border-[#5A7291]/35 dark:border-[#8FA3B8]/35";
+export const COACH_ACCENT_BG = "bg-[#5A7291]/12 dark:bg-[#5A7291]/20";
+export const COACH_ACCENT_DOT = "bg-[#5A7291] dark:bg-[#8FA3B8]";

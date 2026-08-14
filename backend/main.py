@@ -53,8 +53,20 @@ def _build_llm() -> ChatOpenAI:
     )
 
 
+# Shared by build_agent() and build_plan_llm() so the app only opens one
+# ChatOpenAI client (and connection pool) instead of one per use case.
+_llm_instance: ChatOpenAI | None = None
+
+
+def _get_llm() -> ChatOpenAI:
+    global _llm_instance
+    if _llm_instance is None:
+        _llm_instance = _build_llm()
+    return _llm_instance
+
+
 def build_agent():
-    return create_agent(_build_llm(), tools=[], system_prompt=SYSTEM_PROMPT)
+    return create_agent(_get_llm(), tools=[], system_prompt=SYSTEM_PROMPT)
 
 
 def get_reply(agent, user_input):
@@ -152,7 +164,7 @@ def _validate_plan_shape(plan: WeeklyPlanModel, days_per_week: int) -> None:
 
 
 def build_plan_llm():
-    return _build_llm().with_structured_output(WeeklyPlanModel)
+    return _get_llm().with_structured_output(WeeklyPlanModel)
 
 
 def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
@@ -171,7 +183,6 @@ def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
             return result.days
         except (ValidationError, ValueError) as e:
             last_error = e
-            continue
 
     raise RuntimeError(f"Failed to generate a valid plan after retry: {last_error}")
 
