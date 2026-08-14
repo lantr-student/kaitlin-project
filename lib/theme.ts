@@ -19,3 +19,9 @@ export const ACTIVE_STROKE = "stroke-[#33465C] dark:stroke-[#6E8CB0]";
 // Shared style for every primary, navigational call-to-action button in the app.
 export const PRIMARY_BUTTON =
   "flex items-center justify-between gap-2 rounded-full bg-[#33465C] px-6 py-3.5 text-sm font-bold text-[#F4F6F7] transition-colors hover:bg-[#263548] dark:bg-[#6E8CB0] dark:text-[#141A21] dark:hover:bg-[#86A3C4]";
+
+// Inline error text/background — used for the onboarding "build my plan" failure
+// message and the coach screen's failed-reply state. New addition; no error color
+// existed anywhere in the app before real network calls were wired in.
+export const ERROR_TEXT = "text-[#B5503C] dark:text-[#E8A796]";
+export const ERROR_BG = "bg-[#B5503C]/10 border border-[#B5503C]/30 dark:bg-[#B5503C]/10 dark:border-[#B5503C]/25";

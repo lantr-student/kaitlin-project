@@ -501,33 +501,3 @@ export function computeProgressStats(goal: Goal, trajectory: TrajectoryPoint[]) 
     weeksRemaining: Math.max(Math.round(daysRemaining / 7), 0),
   };
 }
-
-export function buildCoachTranscript(
-  goal: Goal,
-  stats: ReturnType<typeof computeProgressStats>,
-  activity: { workoutsThisMonth: number; plannedThisMonth: number } = PROGRESS_ACTIVITY
-): CoachTurn[] {
-  const paceWord = stats.behindPace ? "behind" : "ahead of";
-  const metricShort = goal.metric.split(" ")[0].toLowerCase();
-  const targetDateStr = new Date(`${goal.targetDate}T00:00:00`).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-  });
-
-  return [
-    {
-      from: "coach",
-      text: `You're at ${stats.actualToday} ${goal.unit} on ${metricShort} and ${stats.paceGap} ${goal.unit} ${paceWord} the pace to hit ${goal.targetValue} ${goal.unit} by ${targetDateStr}. Your workouts have been solid, you just need a little more consistency — you've hit ${activity.workoutsThisMonth} of ${activity.plannedThisMonth} sessions this month. Let's add a quick 20-minute ${metricShort} session this week to keep you on track.`,
-    },
-    { from: "user", text: "That makes sense — I've been busy on Tuesdays. Could we make it shorter?" },
-    {
-      from: "coach",
-      text: "Your sessions have been running about 52 minutes, and Tuesday's your tightest window, so let's trim this one down — three exercises, about 20 minutes total. Enough to move the needle without crowding your week.",
-    },
-    { from: "user", text: "Sounds good, let's try that." },
-    {
-      from: "coach",
-      text: `You're ${stats.paceGap} ${goal.unit} ${paceWord} pace with about ${stats.weeksRemaining} weeks to go — closing a gap that size just takes a little more consistency, not a bigger overhaul. Stick with this week's plan plus the new add-on, and I'll check back in on your trajectory in two weeks.`,
-    },
-  ];
-}

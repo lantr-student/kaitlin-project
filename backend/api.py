@@ -1,11 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from main import build_agent, get_reply
+from main import build_agent, build_plan_llm, generate_plan, get_reply, OnboardingRequest, PlanDayModel
 
 app = FastAPI()
 agent = build_agent()
+plan_llm = build_plan_llm()
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,3 +35,11 @@ def root():
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
     return ChatResponse(response=get_reply(agent, request.message))
+
+
+@app.post("/plan", response_model=list[PlanDayModel])
+def plan(request: OnboardingRequest):
+    try:
+        return generate_plan(plan_llm, request)
+    except RuntimeError:
+        raise HTTPException(status_code=502, detail="Failed to generate a training plan. Please try again.")

@@ -12,8 +12,8 @@ A personal-training agent that takes a real goal, builds the plan to reach it, w
 - After a major change (a real feature, a significant bug fix, or a major removal), log it to `CHANGELOG.txt` — see below. Skip minor/cosmetic tweaks entirely; ask first if unsure whether something qualifies.
 
 ## What's placeholder
-- Onboarding, plan, log, progress, and coach screens are built and wired to local app state — no backend or database yet.
-- All plan/workout/coach content comes from mocked data in `lib/data.ts`, not a real training algorithm.
+- Onboarding now submits the profile to the backend (`POST /plan`), which LLM-generates a real weekly plan shown on the Plan and Log pages. Coach chat sends each message to the backend (`POST /chat`) and shows the real reply. Both fall back to mocked data in `lib/data.ts` when no backend response is available yet (e.g. a page loaded without going through onboarding this session).
+- Log, progress, and profile stats/history still run entirely on local app state and hardcoded data in `lib/data.ts` — no persisted workout history, database, or real accounts yet.
 - Photo-based form-checking isn't built yet — no photo capture or upload exists in the app.
 - Update this section as real functionality replaces the placeholders.
 

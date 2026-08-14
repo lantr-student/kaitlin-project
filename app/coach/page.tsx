@@ -4,8 +4,20 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useAppState } from "@/components/AppStateProvider";
 import { COACH_ICONS } from "@/components/icons";
-import { buildCoachTranscript, buildTrajectory, computeProgressStats, type CoachTurn } from "@/lib/data";
-import { quicksand, caveat, FAINT_BG, FAINT_PLACEHOLDER, INK, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+import { type CoachTurn } from "@/lib/data";
+import { sendChatMessage, ApiError } from "@/lib/api";
+import { Spinner } from "@/components/Spinner";
+import {
+  quicksand,
+  caveat,
+  FAINT_BG,
+  FAINT_PLACEHOLDER,
+  INK,
+  FAINT,
+  PRIMARY_BUTTON,
+  ERROR_TEXT,
+  ERROR_BG,
+} from "@/lib/theme";
 
 const HEADLINES = [
   "How's training going?",
@@ -17,15 +29,13 @@ const HEADLINES = [
 ];
 
 export default function Coach() {
-  const { onboarding, activity, coachIcon } = useAppState();
-  const { goal } = onboarding;
-
-  const trajectory = buildTrajectory(goal);
-  const stats = computeProgressStats(goal, trajectory);
+  const { coachIcon } = useAppState();
   const CoachIcon = COACH_ICONS.find((c) => c.id === coachIcon)?.Icon ?? COACH_ICONS[0].Icon;
 
-  const [messages, setMessages] = useState<CoachTurn[]>(() => buildCoachTranscript(goal, stats, activity));
+  const [messages, setMessages] = useState<CoachTurn[]>([]);
   const [draft, setDraft] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   // Starts at a fixed pick so server and client render the same thing before this
   // runs, then randomizes on mount (mirrors the Plan page's headline rotation).
   const [headlinePick, setHeadlinePick] = useState(0);
@@ -38,14 +48,26 @@ export default function Coach() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [messages]);
+  }, [messages, isSending]);
 
-  const handleSend = (e: FormEvent) => {
+  const handleSend = async (e: FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
-    if (!text) return;
+    if (!text || isSending) return;
+
     setMessages((prev) => [...prev, { from: "user", text }]);
     setDraft("");
+    setSendError(null);
+    setIsSending(true);
+
+    try {
+      const reply = await sendChatMessage(text);
+      setMessages((prev) => [...prev, { from: "coach", text: reply }]);
+    } catch (err) {
+      setSendError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -76,6 +98,22 @@ export default function Coach() {
               </div>
             )
           )}
+          {isSending && (
+            <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-[#A9BFA0]/60 bg-[#A9BFA0]/15 p-4 sm:p-5 dark:border-[#7C9270]/50 dark:bg-[#4E5E48]/20">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-[#33465C] dark:bg-[#6E8CB0]">
+                  <CoachIcon className="h-3.5 w-3.5 text-[#F4F6F7] dark:text-[#141A21]" />
+                </span>
+                <span className={`text-xs font-semibold ${FAINT}`}>Spotter Coach</span>
+              </div>
+              <Spinner className={`h-4 w-4 ${INK}`} />
+            </div>
+          )}
+          {sendError && (
+            <div className={`max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 text-sm ${ERROR_BG} ${ERROR_TEXT}`}>
+              {sendError}
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
 
@@ -89,7 +127,7 @@ export default function Coach() {
           />
           <button
             type="submit"
-            disabled={!draft.trim()}
+            disabled={!draft.trim() || isSending}
             className={`${PRIMARY_BUTTON} flex-none disabled:cursor-not-allowed disabled:opacity-40`}
           >
             <span>Send</span>

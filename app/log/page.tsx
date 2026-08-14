@@ -10,10 +10,10 @@ import { useAppState } from "@/components/AppStateProvider";
 import { TODAYS_WORKOUT } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
-const lastRow = Math.ceil(TODAYS_WORKOUT.exercises.length / 2) - 1;
-
 export default function LogWorkout() {
-  const { setProgress, toggleSet, updateSetField, exerciseDone } = useAppState();
+  const { setProgress, toggleSet, updateSetField, exerciseDone, weeklyPlan } = useAppState();
+  const activeTodaysWorkout = weeklyPlan ? weeklyPlan[2] : TODAYS_WORKOUT;
+  const lastRow = Math.ceil(activeTodaysWorkout.exercises.length / 2) - 1;
 
   const totalSets = setProgress.reduce((sum, sets) => sum + sets.length, 0);
   const doneSets = setProgress.reduce((sum, sets) => sum + sets.filter((s) => s.done).length, 0);
@@ -26,14 +26,14 @@ export default function LogWorkout() {
         <div className="flex flex-none items-center justify-between gap-3">
           <div className="flex-none">
             <p className={`text-lg leading-none text-[#33465C] dark:text-[#9AA6B0] ${caveat.className}`}>
-              {TODAYS_WORKOUT.day} · Today
+              {activeTodaysWorkout.day} · Today
             </p>
-            <h1 className={`mt-1 text-xl font-bold sm:text-2xl ${INK}`}>{TODAYS_WORKOUT.focus}</h1>
+            <h1 className={`mt-1 text-xl font-bold sm:text-2xl ${INK}`}>{activeTodaysWorkout.focus}</h1>
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
             <div className="flex min-w-0 items-start gap-5 overflow-x-auto">
-              {TODAYS_WORKOUT.exercises.map((exercise, exerciseIndex) => {
+              {activeTodaysWorkout.exercises.map((exercise, exerciseIndex) => {
                 const sets = setProgress[exerciseIndex] ?? [];
                 const doneCount = sets.filter((s) => s.done).length;
                 const complete = exerciseDone[exerciseIndex] ?? false;
@@ -83,7 +83,7 @@ export default function LogWorkout() {
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-3 pb-4 sm:min-h-0 sm:flex-1 sm:grid-cols-2 sm:grid-rows-3 sm:gap-4 sm:pb-6">
-          {TODAYS_WORKOUT.exercises.map((exercise, exerciseIndex) => {
+          {activeTodaysWorkout.exercises.map((exercise, exerciseIndex) => {
             const isLastRow = Math.floor(exerciseIndex / 2) === lastRow;
             const openLeft = exerciseIndex % 2 === 1;
             return (
@@ -129,7 +129,7 @@ export default function LogWorkout() {
           })}
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <StickyNote label="Coach's notes" text={TODAYS_WORKOUT.coachNote} />
+            <StickyNote label="Coach's notes" text={activeTodaysWorkout.coachNote} />
 
             <Link href="/coach" className={`${PRIMARY_BUTTON} flex-none`}>
               <span>Ask coach</span>

@@ -10,8 +10,6 @@ import { useAppState } from "@/components/AppStateProvider";
 import { WEEKLY_PLAN, TODAYS_WORKOUT, goalProgressPercent, type PlanDay } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
-const todayIndex = WEEKLY_PLAN.findIndex((d) => d.day === TODAYS_WORKOUT.day);
-
 function timeOfDayGreeting(hour: number): string {
   if (hour < 12) return "morning";
   if (hour < 18) return "afternoon";
@@ -133,12 +131,15 @@ const RING_WEEKLY = "stroke-[#4A6FA5] dark:stroke-[#8CAAD9]";
 const RING_GOAL = "stroke-[#7A5DA8] dark:stroke-[#B29BD9]";
 
 export default function Plan() {
-  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress, displayName } =
+  const { onboarding, exerciseDone, toggleExercise, workoutStarted, activity, setProgress, displayName, weeklyPlan } =
     useAppState();
   const { goal } = onboarding;
+  const activeWeeklyPlan = weeklyPlan ?? WEEKLY_PLAN;
+  const activeTodaysWorkout = weeklyPlan ? weeklyPlan[2] : TODAYS_WORKOUT;
+  const todayIndex = activeWeeklyPlan.findIndex((d) => d.day === activeTodaysWorkout.day);
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [headlinePicks, setHeadlinePicks] = useState<HeadlinePicks>(INITIAL_HEADLINE_PICKS);
-  const selectedDay = WEEKLY_PLAN[selectedDayIndex];
+  const selectedDay = activeWeeklyPlan[selectedDayIndex];
   const isSelectedToday = selectedDayIndex === todayIndex;
 
   const weeklyPercent = activity.plannedThisWeek ? (activity.workoutsThisWeek / activity.plannedThisWeek) * 100 : 0;
@@ -149,8 +150,8 @@ export default function Plan() {
   const goalPercent = goalProgressPercent(goal);
   const goalShortName = goal.metric.split(" ")[0].toLowerCase();
 
-  const daysBeforeSelected = WEEKLY_PLAN.slice(0, selectedDayIndex);
-  const daysAfterSelected = WEEKLY_PLAN.slice(selectedDayIndex + 1);
+  const daysBeforeSelected = activeWeeklyPlan.slice(0, selectedDayIndex);
+  const daysAfterSelected = activeWeeklyPlan.slice(selectedDayIndex + 1);
 
   // Re-rolled once per page load (not per day-card click) — starts at a fixed pick so
   // server and client render the same thing before this runs, then randomizes on mount.
@@ -326,7 +327,7 @@ function DayCard({
 
       <div className="flex-1" />
 
-      {isToday && (
+      {isToday && !day.isRestDay && (
         <Link href="/log" className={PRIMARY_BUTTON}>
           <span>{workoutStarted ? "Continue workout" : "Start workout"}</span>
           <span aria-hidden>→</span>

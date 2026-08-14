@@ -11,6 +11,22 @@ removed, so it never mentions anything that no longer exists.
 - Enabled CORS on the backend API, restricted to exactly the deployed
   frontend origin (https://spotter-app-nu.vercel.app) and the local dev
   server (http://localhost:3000) — no wildcard.
+- Wired the app to the real backend for the first time. Submitting the
+  onboarding profile now POSTs to a new backend endpoint (/plan) that
+  LLM-generates a real 7-day weekly plan from the client's goal,
+  experience, days/week, and equipment, shown on the Plan and Log pages
+  in place of the old hardcoded plan (with a loading state on "Build my
+  plan" and a retry banner if the request fails). The Coach page's
+  scripted opening conversation is gone — it now starts empty and sends
+  each typed message to the existing /chat endpoint, showing a pending
+  state and then the real reply (or an inline error on failure).
+  Progress and Profile still use the existing hardcoded history data,
+  unchanged. State is still in-memory only, so a page refresh after
+  onboarding falls back to the old hardcoded plan. Also fixed the Plan
+  page's "Start workout" button showing on a rest day — since a real
+  generated plan can land a rest day on any weekday, unlike the old
+  fixed mock, that button now only appears on today's card when today
+  is an actual training day.
 
 2026-08-11
 - Fixed the Log page overflowing horizontally on mobile for exercises with
@@ -108,8 +124,12 @@ Onboarding
 - The 6-step wizard (goal → experience → days/week → equipment → dated
   goal → summary) is structurally unchanged from the original — same
   steps, same flow logic.
-- The revisions were entirely visual: new type scale, the hand-sketch
-  checkbox component, and restyled summary rows.
+- Visual revisions: new type scale, the hand-sketch checkbox component,
+  and restyled summary rows.
+- "Build my plan" now submits the profile to the backend (new /plan
+  endpoint), shows a loading state while the plan is generated, and only
+  advances to the Plan page once it succeeds — with a retry banner if
+  the request fails.
 
 Plan page (largest rewrite — 71 → ~400 lines)
 - Originally a simple "today" banner plus a static grid of day cards.
@@ -122,6 +142,10 @@ Plan page (largest rewrite — 71 → ~400 lines)
   of its exercises.
 - Fixed an off-screen hover-preview tooltip that caused unwanted
   horizontal scrolling on mobile.
+- The week shown is now whatever plan the backend generated during
+  onboarding (falls back to the original hardcoded week if none has
+  been generated yet, e.g. on a fresh page load with no onboarding
+  this session).
 
 Log page (91 → ~240 lines)
 - Went from a plain list of sets to a "workout notebook" layout — each
@@ -131,6 +155,8 @@ Log page (91 → ~240 lines)
   scrolling on small screens.
 - Fixed a hover-only form-tip popover reserving off-screen layout width
   on mobile for longer exercise names, causing horizontal overflow.
+- Today's workout now comes from the same backend-generated plan as the
+  Plan page (same mock fallback when none exists yet).
 
 Checking off an exercise on the Plan page bulk-toggles its sets
 - AppStateProvider derives exerciseDone automatically (true once every set
@@ -157,18 +183,20 @@ Progress page
   space); mobile still scrolls normally.
 
 Coach page
-- Kept the original chat-transcript concept (coach/user message bubbles
-  built from mock data) but restyled the bubbles and added a message input
-  box at the bottom (visual only — no backend yet).
+- Kept the original chat-bubble concept but restyled the bubbles and
+  added a message input box at the bottom.
 - The page is locked to the viewport height (h-dvh), with the header and
   input pinned in place; only the message list scrolls internally
   (overflow-y-auto), so the conversation scrolls without the rest of the
   page moving.
-- Rewrote the coach's dialogue to sound more conversational.
 - The header now rotates through several short prompts instead of a fixed
   greeting, and the coach's avatar is user-selectable.
 - The chat auto-scrolls to the latest message on page load and as new
   messages are sent/received.
+- The scripted opening conversation is gone — the screen starts empty,
+  and each message you send goes to the real /chat backend endpoint,
+  with a pending state while waiting and the real reply appended when
+  it arrives (or an inline error if the request fails).
 
 Profile page (new)
 - New page (5th BottomNav tab) with six stat tiles, each with its own
@@ -183,13 +211,25 @@ Profile page (new)
 Data layer (lib/data.ts)
 - Same core shape (goal, plan day, trajectory point, coach turn types),
   but WEEKLY_PLAN's mock content grew substantially (rest times, form
-  tips per exercise).
+  tips per exercise); it now also serves as the fallback plan whenever
+  a real one hasn't been generated yet.
 - Added a goalProgressPercent helper to drive the progress rings, and a
   buildWeeklyConsistency helper for the Progress page's bar chart.
 - Added an Account type and more streak/volume fields (longestStreakDays,
   totalWorkoutDays, totalWeightLifted) to support the Profile page.
+- New lib/api.ts holds the fetch client for the backend (fetchPlan,
+  sendChatMessage), used by onboarding and the Coach page.
+
+Backend (kaitlin-project/backend/)
+- New FastAPI service (main.py + api.py), deployed on Railway, separate
+  from the Next.js frontend. Two endpoints: POST /chat (a LangChain
+  agent with a coach persona) and POST /plan (LLM-generates a 7-day
+  plan from a submitted profile, returned as structured JSON matching
+  the frontend's PlanDay[] shape).
 
 What hasn't changed
-- Per CLAUDE.md, it's still entirely frontend-only — everything runs off
-  mocked data in lib/data.ts and local React state via AppStateProvider,
-  no backend, no database, no real photo-based form-checking yet.
+- Log/set data, Progress, and Profile still run entirely on local state
+  and the hardcoded history in lib/data.ts — no persisted workout
+  history or real accounts yet.
+- Real photo-based form-checking isn't built yet — no photo capture or
+  upload exists in the app.

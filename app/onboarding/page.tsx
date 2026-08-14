@@ -14,7 +14,8 @@ import {
   deriveGoalStartValue,
   type OnboardingAnswers,
 } from "@/lib/data";
-import { PRIMARY_BUTTON } from "@/lib/theme";
+import { Spinner } from "@/components/Spinner";
+import { PRIMARY_BUTTON, ERROR_TEXT, ERROR_BG } from "@/lib/theme";
 
 const quicksand = Quicksand({ subsets: ["latin"], weight: ["500", "600", "700"] });
 const caveat = Caveat({ subsets: ["latin"], weight: ["600", "700"] });
@@ -43,6 +44,8 @@ export default function Onboarding() {
   const [currentValue, setCurrentValue] = useState(String(DEFAULT_ONBOARDING.goal.currentValue));
   const [targetValue, setTargetValue] = useState(String(DEFAULT_ONBOARDING.goal.targetValue));
   const [targetDate, setTargetDate] = useState(DEFAULT_ONBOARDING.goal.targetDate);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const selectedMetric = GOAL_METRICS.find((m) => m.metric === metric) ?? GOAL_METRICS[0];
   const lastStep = STEP_LABELS.length - 1;
@@ -58,7 +61,7 @@ export default function Onboarding() {
     return true;
   }
 
-  function handleFinish() {
+  async function handleFinish() {
     const current = Number(currentValue);
     const target = Number(targetValue);
     const answers: OnboardingAnswers = {
@@ -76,8 +79,17 @@ export default function Onboarding() {
         targetDate,
       },
     };
-    completeOnboarding(answers);
-    router.push("/plan");
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      await completeOnboarding(answers);
+      router.push("/plan");
+    } catch {
+      setSubmitError("Spotter couldn't build your plan. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -232,12 +244,35 @@ export default function Onboarding() {
               <span aria-hidden>→</span>
             </button>
           ) : (
-            <button type="button" onClick={handleFinish} className={`${PRIMARY_BUTTON} flex-1`}>
-              <span>Build my plan</span>
-              <span aria-hidden>→</span>
+            <button
+              type="button"
+              onClick={handleFinish}
+              disabled={isSubmitting}
+              className={`${PRIMARY_BUTTON} flex-1 disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {isSubmitting ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  <span>Building your plan…</span>
+                </>
+              ) : (
+                <>
+                  <span>Build my plan</span>
+                  <span aria-hidden>→</span>
+                </>
+              )}
             </button>
           )}
         </div>
+
+        {submitError && (
+          <div className={`mt-3 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm ${ERROR_BG} ${ERROR_TEXT}`}>
+            <span>{submitError}</span>
+            <button type="button" onClick={handleFinish} className="flex-none font-semibold underline underline-offset-2">
+              Try again
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );
