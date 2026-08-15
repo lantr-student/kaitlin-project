@@ -8,6 +8,46 @@ removed, so it never mentions anything that no longer exists.
 ================================================================================
 
 2026-08-14
+- Replaced hand-curated substitutes/progression/regression lists with a
+  computed weighted-similarity engine (backend/exercise_library.py):
+  ranks every other exercise against a target by primary-muscle overlap
+  (40%), movement pattern match (25%), compound/isolation match (15%),
+  secondary-muscle overlap (10%), and skill/stability closeness (10%),
+  then picks the closest matches — restricted to strictly harder ones
+  for progression, strictly easier for regression. The three fields are
+  gone from exercises.json entirely; nothing is hand-authored anymore.
+  lookup_exercise now computes these live. Since the Log page's Swap
+  menu used to read substitutes straight out of the local JSON file
+  (no network call), it now calls a new GET /exercises/{name}/relations
+  endpoint instead (lib/api.ts's fetchExerciseRelations, fetched async
+  on page load per exercise, with a small static fallback list if that
+  call fails). Exercises already at the top of a muscle group's
+  difficulty range (e.g. Back Squat, Deadlift) have nothing in the data
+  our 3-tier difficulty model considers strictly harder, so
+  compute_progression falls back to the closest same-difficulty
+  options instead of returning nothing (e.g. Pause Squat/Front Squat
+  for Back Squat) — flagged via a new is_same_difficulty field so nothing
+  claims a lateral pick is "harder" than it is. The coach's own wording
+  reflects this correctly in testing ("the library doesn't have a
+  direct harder progression... but here are the best options").
+  Also found and fixed a pre-existing bug (unrelated to this change,
+  just newly easy to hit now that substitutes vary more): the Log
+  page's exercise cards keyed on exercise name alone, so swapping to a
+  substitute that's already present elsewhere in the day's workout
+  produced two cards with the same React key (app/log/page.tsx, both
+  the per-exercise progress-ring row and the main exercise cards) —
+  confirmed with a live browser test, then fixed by keying on exercise
+  index + name together instead, which is always unique and still
+  resets each card's edit state when its exercise changes.
+  lookup_exercise also gained a direction parameter ("similar" by
+  default, or "harder"/"easier") so a plain swap request (equipment
+  unavailable, wants variety) only computes/shows the closest same-
+  difficulty substitute, and progression/regression only get computed
+  at all when the client actually asks for something harder or easier
+  — previously every named-exercise lookup always computed and
+  surfaced all three regardless of what was actually asked. Confirmed
+  in a live conversation that the coach now calls the tool with the
+  matching direction for each of the three phrasings.
 - Substantially enriched backend/data/exercises.json's schema: muscle_group
   is now primary_muscles, a real list (e.g. Back Squat is Quads AND Glutes,
   not just Quads), plus secondary_muscles; "Full Body" and "Grip/Core" —
@@ -276,15 +316,20 @@ Data layer (lib/data.ts)
 
 Backend (kaitlin-project/backend/)
 - New FastAPI service (main.py + api.py), deployed on Railway, separate
-  from the Next.js frontend. Two endpoints: POST /chat (a LangChain
-  agent with a coach persona) and POST /plan (LLM-generates a 7-day
-  plan from a submitted profile, returned as structured JSON matching
-  the frontend's PlanDay[] shape).
+  from the Next.js frontend. Three endpoints: POST /chat (a LangChain
+  agent with a coach persona), POST /plan (LLM-generates a 7-day plan
+  from a submitted profile, returned as structured JSON matching the
+  frontend's PlanDay[] shape), and GET /exercises/{name}/relations
+  (computed substitutes/progression/regression for one exercise, used
+  by the Log page's Swap menu).
 - The coach agent (POST /chat) has one tool, lookup_exercise, backed by
   an authored exercise library (backend/data/exercises.json) with real
   anatomical primary/secondary muscles, equipment, movement pattern,
-  compound/isolation type, and progression/regression chains — used to
-  ground exercise swaps and equipment questions instead of guessing.
+  and compound/isolation type — used to ground exercise swaps and
+  equipment questions instead of guessing. Substitutes/progression/
+  regression aren't stored in that file; backend/exercise_library.py
+  computes them from those attributes via a weighted-similarity score,
+  shared by the tool and the /exercises/{name}/relations endpoint.
   /plan generation reads from the same library, pre-filtered by
   equipment/experience in Python rather than via tool calls (kept as a
   single LLM call for latency).

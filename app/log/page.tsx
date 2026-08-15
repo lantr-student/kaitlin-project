@@ -8,14 +8,40 @@ import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { PencilIcon } from "@/components/icons";
 import { useAppState } from "@/components/AppStateProvider";
+import { fetchExerciseRelations } from "@/lib/api";
 import { libraryInfoForExercise, type Exercise, type SetProgress } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
+
+// Shown for an exercise's Swap options until its real substitutes have
+// loaded from the backend (or if that fetch fails).
+const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", "Kettlebell Swing"];
 
 export default function LogWorkout() {
   const { setProgress, toggleSet, updateSetField, exerciseDone, todaysWorkout, onboarding, swapExercise } =
     useAppState();
   const lastRow = Math.ceil(todaysWorkout.exercises.length / 2) - 1;
   const whyText = `Part of today's ${todaysWorkout.focus} work, chosen to help move you toward your ${onboarding.goalType.toLowerCase()} goal.`;
+
+  const [substitutesByName, setSubstitutesByName] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      todaysWorkout.exercises.map(async (exercise) => {
+        try {
+          const { substitutes } = await fetchExerciseRelations(exercise.name);
+          return [exercise.name, substitutes] as const;
+        } catch {
+          return [exercise.name, DEFAULT_ALTERNATES] as const;
+        }
+      })
+    ).then((entries) => {
+      if (!cancelled) setSubstitutesByName(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [todaysWorkout.exercises]);
 
   const totalSets = setProgress.reduce((sum, sets) => sum + sets.length, 0);
   const doneSets = setProgress.reduce((sum, sets) => sum + sets.filter((s) => s.done).length, 0);
@@ -40,7 +66,7 @@ export default function LogWorkout() {
                 const doneCount = sets.filter((s) => s.done).length;
                 const complete = exerciseDone[exerciseIndex] ?? false;
                 return (
-                  <div key={exercise.name} className="flex w-20 flex-none flex-col items-center gap-1">
+                  <div key={`${exerciseIndex}-${exercise.name}`} className="flex w-20 flex-none flex-col items-center gap-1">
                     <ProgressRing
                       size={36}
                       strokeWidth={4}
@@ -90,16 +116,17 @@ export default function LogWorkout() {
             const openLeft = exerciseIndex % 2 === 1;
             const libraryInfo = libraryInfoForExercise(exercise.name);
             const muscleGroup = libraryInfo.muscleGroup ?? todaysWorkout.focus;
+            const alternates = substitutesByName[exercise.name] ?? DEFAULT_ALTERNATES;
             return (
               <NotebookSection
-                key={exercise.name}
+                key={`${exerciseIndex}-${exercise.name}`}
                 exercise={exercise}
                 sets={setProgress[exerciseIndex] ?? []}
                 onToggleSet={(setIndex) => toggleSet(exerciseIndex, setIndex)}
                 onUpdateSet={(setIndex, field, value) => updateSetField(exerciseIndex, setIndex, field, value)}
                 why={whyText}
                 muscleGroup={muscleGroup}
-                alternates={libraryInfo.alternates}
+                alternates={alternates}
                 onSwap={(name) => swapExercise(exerciseIndex, name)}
                 openLeft={openLeft}
                 openUp={isLastRow}

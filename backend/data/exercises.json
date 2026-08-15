@@ -1,40 +1,64 @@
 [
   {
     "name": "Bench Press",
-    "primary_muscles": ["Chest"],
-    "secondary_muscles": ["Triceps", "Shoulders"],
-    "equipment": ["Barbell", "Bench"],
+    "primary_muscles": [
+      "Chest"
+    ],
+    "secondary_muscles": [
+      "Triceps",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Barbell",
+      "Bench"
+    ],
     "movement_pattern": "Horizontal Push",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow", "Wrist"],
-    "progression": [],
-    "regression": ["Push-Up"],
-    "substitutes": ["Incline Dumbbell Press", "Push-Up", "Dumbbell Fly"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Incline Dumbbell Press",
-    "primary_muscles": ["Chest"],
-    "secondary_muscles": ["Shoulders", "Triceps"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Chest"
+    ],
+    "secondary_muscles": [
+      "Shoulders",
+      "Triceps"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Horizontal Push",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow", "Wrist"],
-    "progression": [],
-    "regression": ["Push-Up"],
-    "substitutes": ["Bench Press", "Push-Up", "Dumbbell Fly"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Push-Up",
-    "primary_muscles": ["Chest"],
-    "secondary_muscles": ["Triceps", "Shoulders", "Core"],
+    "primary_muscles": [
+      "Chest"
+    ],
+    "secondary_muscles": [
+      "Triceps",
+      "Shoulders",
+      "Core"
+    ],
     "equipment": [],
     "movement_pattern": "Horizontal Push",
     "exercise_type": "Compound",
@@ -42,175 +66,239 @@
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow", "Wrist"],
-    "progression": ["Bench Press", "Incline Dumbbell Press"],
-    "regression": [],
-    "substitutes": ["Bench Press", "Incline Dumbbell Press"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Dumbbell Fly",
-    "primary_muscles": ["Chest"],
-    "secondary_muscles": ["Shoulders"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Chest"
+    ],
+    "secondary_muscles": [
+      "Shoulders"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Horizontal Adduction",
     "exercise_type": "Isolation",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Shoulder"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Incline Dumbbell Press", "Bench Press"]
+    "joint_demands": [
+      "Shoulder"
+    ]
   },
   {
     "name": "Overhead Press",
-    "primary_muscles": ["Shoulders"],
-    "secondary_muscles": ["Triceps", "Core"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
+    "secondary_muscles": [
+      "Triceps",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Vertical Push",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "High",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": ["Push Press"],
-    "regression": ["Dumbbell Shoulder Press"],
-    "substitutes": ["Dumbbell Shoulder Press", "Lateral Raise", "Arnold Press"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Push Press",
-    "primary_muscles": ["Shoulders"],
-    "secondary_muscles": ["Triceps", "Quads", "Core"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
+    "secondary_muscles": [
+      "Triceps",
+      "Quads",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Vertical Push",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "High",
     "skill_demand": "High",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow", "Knee", "Hip"],
-    "progression": [],
-    "regression": ["Overhead Press"],
-    "substitutes": ["Overhead Press"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Knee",
+      "Hip"
+    ]
   },
   {
     "name": "Dumbbell Shoulder Press",
-    "primary_muscles": ["Shoulders"],
-    "secondary_muscles": ["Triceps"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
+    "secondary_muscles": [
+      "Triceps"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Vertical Push",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": ["Overhead Press"],
-    "regression": [],
-    "substitutes": ["Overhead Press", "Lateral Raise", "Arnold Press"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Arnold Press",
-    "primary_muscles": ["Shoulders"],
-    "secondary_muscles": ["Triceps"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
+    "secondary_muscles": [
+      "Triceps"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Vertical Push",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": [],
-    "regression": ["Dumbbell Shoulder Press"],
-    "substitutes": ["Dumbbell Shoulder Press", "Overhead Press"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Lateral Raise",
-    "primary_muscles": ["Shoulders"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Dumbbells"],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Shoulder Abduction",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Overhead Press", "Dumbbell Shoulder Press", "Front Raise"]
+    "joint_demands": [
+      "Shoulder"
+    ]
   },
   {
     "name": "Front Raise",
-    "primary_muscles": ["Shoulders"],
+    "primary_muscles": [
+      "Shoulders"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Dumbbells"],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Shoulder Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Lateral Raise"]
+    "joint_demands": [
+      "Shoulder"
+    ]
   },
   {
     "name": "Close-Grip Bench Press",
-    "primary_muscles": ["Triceps"],
-    "secondary_muscles": ["Chest", "Shoulders"],
-    "equipment": ["Barbell", "Bench"],
+    "primary_muscles": [
+      "Triceps"
+    ],
+    "secondary_muscles": [
+      "Chest",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Barbell",
+      "Bench"
+    ],
     "movement_pattern": "Horizontal Push",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Shoulder", "Wrist"],
-    "progression": [],
-    "regression": ["Diamond Push-Up", "Bench Dips"],
-    "substitutes": ["Dumbbell Skull Crusher", "Diamond Push-Up", "Tricep Pushdown"]
+    "joint_demands": [
+      "Elbow",
+      "Shoulder",
+      "Wrist"
+    ]
   },
   {
     "name": "Dumbbell Skull Crusher",
-    "primary_muscles": ["Triceps"],
+    "primary_muscles": [
+      "Triceps"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Dumbbells", "Bench"],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Elbow Extension",
     "exercise_type": "Isolation",
     "experience_level": "Intermediate",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Close-Grip Bench Press", "Diamond Push-Up", "Tricep Pushdown"]
+    "joint_demands": [
+      "Elbow"
+    ]
   },
   {
     "name": "Tricep Pushdown",
-    "primary_muscles": ["Triceps"],
+    "primary_muscles": [
+      "Triceps"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Cable machine"],
+    "equipment": [
+      "Cable machine"
+    ],
     "movement_pattern": "Elbow Extension",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Dumbbell Skull Crusher", "Close-Grip Bench Press"]
+    "joint_demands": [
+      "Elbow"
+    ]
   },
   {
     "name": "Diamond Push-Up",
-    "primary_muscles": ["Triceps"],
-    "secondary_muscles": ["Chest", "Shoulders", "Core"],
+    "primary_muscles": [
+      "Triceps"
+    ],
+    "secondary_muscles": [
+      "Chest",
+      "Shoulders",
+      "Core"
+    ],
     "equipment": [],
     "movement_pattern": "Horizontal Push",
     "exercise_type": "Compound",
@@ -218,127 +306,195 @@
     "stability_demand": "Low",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Shoulder", "Wrist"],
-    "progression": ["Close-Grip Bench Press"],
-    "regression": [],
-    "substitutes": ["Close-Grip Bench Press", "Dumbbell Skull Crusher", "Bench Dips"]
+    "joint_demands": [
+      "Elbow",
+      "Shoulder",
+      "Wrist"
+    ]
   },
   {
     "name": "Bench Dips",
-    "primary_muscles": ["Triceps"],
-    "secondary_muscles": ["Chest", "Shoulders"],
-    "equipment": ["Bench"],
+    "primary_muscles": [
+      "Triceps"
+    ],
+    "secondary_muscles": [
+      "Chest",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Bench"
+    ],
     "movement_pattern": "Vertical Push",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Shoulder"],
-    "progression": ["Close-Grip Bench Press"],
-    "regression": [],
-    "substitutes": ["Diamond Push-Up", "Close-Grip Bench Press"]
+    "joint_demands": [
+      "Elbow",
+      "Shoulder"
+    ]
   },
   {
     "name": "Back Squat",
-    "primary_muscles": ["Quads", "Glutes"],
-    "secondary_muscles": ["Hamstrings", "Adductors", "Core"],
-    "equipment": ["Barbell", "Squat rack"],
+    "primary_muscles": [
+      "Quads",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Adductors",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell",
+      "Squat rack"
+    ],
     "movement_pattern": "Squat",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "High",
     "skill_demand": "High",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": ["Front Squat", "Pause Squat"],
-    "regression": ["Goblet Squat"],
-    "substitutes": ["Goblet Squat", "Walking Lunge", "Leg Press"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Front Squat",
-    "primary_muscles": ["Quads"],
-    "secondary_muscles": ["Glutes", "Core", "Adductors"],
-    "equipment": ["Barbell", "Squat rack"],
+    "primary_muscles": [
+      "Quads"
+    ],
+    "secondary_muscles": [
+      "Glutes",
+      "Core",
+      "Adductors"
+    ],
+    "equipment": [
+      "Barbell",
+      "Squat rack"
+    ],
     "movement_pattern": "Squat",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "High",
     "skill_demand": "High",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle", "Wrist"],
-    "progression": [],
-    "regression": ["Back Squat", "Goblet Squat"],
-    "substitutes": ["Back Squat", "Goblet Squat"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle",
+      "Wrist"
+    ]
   },
   {
     "name": "Pause Squat",
-    "primary_muscles": ["Quads", "Glutes"],
-    "secondary_muscles": ["Hamstrings", "Adductors", "Core"],
-    "equipment": ["Barbell", "Squat rack"],
+    "primary_muscles": [
+      "Quads",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Adductors",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell",
+      "Squat rack"
+    ],
     "movement_pattern": "Squat",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "High",
     "skill_demand": "High",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": [],
-    "regression": ["Back Squat", "Goblet Squat"],
-    "substitutes": ["Back Squat", "Front Squat"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Goblet Squat",
-    "primary_muscles": ["Quads"],
-    "secondary_muscles": ["Glutes", "Core", "Adductors"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Quads"
+    ],
+    "secondary_muscles": [
+      "Glutes",
+      "Core",
+      "Adductors"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Squat",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": ["Back Squat", "Front Squat"],
-    "regression": [],
-    "substitutes": ["Back Squat", "Walking Lunge", "Leg Press"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Leg Press",
-    "primary_muscles": ["Quads"],
-    "secondary_muscles": ["Glutes", "Hamstrings"],
-    "equipment": ["Leg machine"],
+    "primary_muscles": [
+      "Quads"
+    ],
+    "secondary_muscles": [
+      "Glutes",
+      "Hamstrings"
+    ],
+    "equipment": [
+      "Leg machine"
+    ],
     "movement_pattern": "Squat",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Goblet Squat", "Back Squat", "Leg Extension"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Leg Extension",
-    "primary_muscles": ["Quads"],
+    "primary_muscles": [
+      "Quads"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Leg machine"],
+    "equipment": [
+      "Leg machine"
+    ],
     "movement_pattern": "Knee Extension",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Knee"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Goblet Squat", "Leg Press"]
+    "joint_demands": [
+      "Knee"
+    ]
   },
   {
     "name": "Walking Lunge",
-    "primary_muscles": ["Quads", "Glutes"],
-    "secondary_muscles": ["Hamstrings", "Adductors", "Core"],
+    "primary_muscles": [
+      "Quads",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Adductors",
+      "Core"
+    ],
     "equipment": [],
     "movement_pattern": "Lunge",
     "exercise_type": "Compound",
@@ -346,111 +502,175 @@
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": true,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": ["Step-Up", "Bulgarian Split Squat"],
-    "regression": [],
-    "substitutes": ["Back Squat", "Goblet Squat"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Step-Up",
-    "primary_muscles": ["Quads", "Glutes"],
-    "secondary_muscles": ["Hamstrings", "Core"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Quads",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Core"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Lunge",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": true,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": ["Bulgarian Split Squat"],
-    "regression": [],
-    "substitutes": ["Walking Lunge", "Goblet Squat"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Bulgarian Split Squat",
-    "primary_muscles": ["Quads", "Glutes"],
-    "secondary_muscles": ["Hamstrings", "Adductors", "Core"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Quads",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Adductors",
+      "Core"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Lunge",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "High",
     "skill_demand": "Medium",
     "unilateral": true,
-    "joint_demands": ["Knee", "Hip", "Ankle"],
-    "progression": [],
-    "regression": ["Step-Up", "Walking Lunge"],
-    "substitutes": ["Walking Lunge", "Step-Up"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle"
+    ]
   },
   {
     "name": "Deadlift",
-    "primary_muscles": ["Back", "Hamstrings", "Glutes"],
-    "secondary_muscles": ["Quads", "Core", "Forearms"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Back",
+      "Hamstrings",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Quads",
+      "Core",
+      "Forearms"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Hinge",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "High",
     "skill_demand": "High",
     "unilateral": false,
-    "joint_demands": ["Hip", "Knee", "Spine"],
-    "progression": [],
-    "regression": ["Trap Bar Deadlift", "Romanian Deadlift"],
-    "substitutes": ["Trap Bar Deadlift", "Romanian Deadlift"]
+    "joint_demands": [
+      "Hip",
+      "Knee",
+      "Spine"
+    ]
   },
   {
     "name": "Trap Bar Deadlift",
-    "primary_muscles": ["Quads", "Hamstrings", "Glutes"],
-    "secondary_muscles": ["Back", "Core"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Quads",
+      "Hamstrings",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Back",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Hinge",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Hip", "Knee", "Ankle", "Spine"],
-    "progression": ["Deadlift"],
-    "regression": ["Kettlebell Swing", "Romanian Deadlift"],
-    "substitutes": ["Kettlebell Swing", "Rowing Machine Intervals", "Deadlift"]
+    "joint_demands": [
+      "Hip",
+      "Knee",
+      "Ankle",
+      "Spine"
+    ]
   },
   {
     "name": "Romanian Deadlift",
-    "primary_muscles": ["Hamstrings", "Glutes"],
-    "secondary_muscles": ["Back", "Core"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Hamstrings",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Back",
+      "Core"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Hinge",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Hip", "Spine"],
-    "progression": ["Deadlift"],
-    "regression": ["Dumbbell RDL", "Glute Bridge"],
-    "substitutes": ["Dumbbell RDL", "Glute Bridge"]
+    "joint_demands": [
+      "Hip",
+      "Spine"
+    ]
   },
   {
     "name": "Dumbbell RDL",
-    "primary_muscles": ["Hamstrings", "Glutes"],
-    "secondary_muscles": ["Core"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Hamstrings",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Core"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Hinge",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Hip", "Spine"],
-    "progression": ["Romanian Deadlift"],
-    "regression": ["Glute Bridge"],
-    "substitutes": ["Romanian Deadlift", "Glute Bridge"]
+    "joint_demands": [
+      "Hip",
+      "Spine"
+    ]
   },
   {
     "name": "Glute Bridge",
-    "primary_muscles": ["Glutes"],
-    "secondary_muscles": ["Hamstrings", "Core"],
+    "primary_muscles": [
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Core"
+    ],
     "equipment": [],
     "movement_pattern": "Hip Extension",
     "exercise_type": "Isolation",
@@ -458,31 +678,37 @@
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Hip"],
-    "progression": ["Dumbbell RDL", "Romanian Deadlift"],
-    "regression": [],
-    "substitutes": ["Romanian Deadlift", "Dumbbell RDL"]
+    "joint_demands": [
+      "Hip"
+    ]
   },
   {
     "name": "Leg Curl",
-    "primary_muscles": ["Hamstrings"],
+    "primary_muscles": [
+      "Hamstrings"
+    ],
     "secondary_muscles": [],
-    "equipment": ["Leg machine"],
+    "equipment": [
+      "Leg machine"
+    ],
     "movement_pattern": "Knee Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Knee"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Romanian Deadlift", "Dumbbell RDL", "Glute Bridge"]
+    "joint_demands": [
+      "Knee"
+    ]
   },
   {
     "name": "Plank",
-    "primary_muscles": ["Core"],
-    "secondary_muscles": ["Shoulders"],
+    "primary_muscles": [
+      "Core"
+    ],
+    "secondary_muscles": [
+      "Shoulders"
+    ],
     "equipment": [],
     "movement_pattern": "Isometric Anti-Extension",
     "exercise_type": "Isolation",
@@ -490,14 +716,16 @@
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Spine", "Shoulder"],
-    "progression": ["Hollow Hold"],
-    "regression": [],
-    "substitutes": ["Hollow Hold", "Band Pallof Press", "Dead Bug"]
+    "joint_demands": [
+      "Spine",
+      "Shoulder"
+    ]
   },
   {
     "name": "Hollow Hold",
-    "primary_muscles": ["Core"],
+    "primary_muscles": [
+      "Core"
+    ],
     "secondary_muscles": [],
     "equipment": [],
     "movement_pattern": "Isometric Anti-Extension",
@@ -506,14 +734,16 @@
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Spine", "Hip"],
-    "progression": [],
-    "regression": ["Plank"],
-    "substitutes": ["Plank", "Band Pallof Press", "Dead Bug"]
+    "joint_demands": [
+      "Spine",
+      "Hip"
+    ]
   },
   {
     "name": "Dead Bug",
-    "primary_muscles": ["Core"],
+    "primary_muscles": [
+      "Core"
+    ],
     "secondary_muscles": [],
     "equipment": [],
     "movement_pattern": "Isometric Anti-Extension",
@@ -522,207 +752,307 @@
     "stability_demand": "Low",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Spine", "Hip", "Shoulder"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Plank", "Hollow Hold"]
+    "joint_demands": [
+      "Spine",
+      "Hip",
+      "Shoulder"
+    ]
   },
   {
     "name": "Band Pallof Press",
-    "primary_muscles": ["Core"],
-    "secondary_muscles": ["Shoulders"],
-    "equipment": ["Resistance bands"],
+    "primary_muscles": [
+      "Core"
+    ],
+    "secondary_muscles": [
+      "Shoulders"
+    ],
+    "equipment": [
+      "Resistance bands"
+    ],
     "movement_pattern": "Anti-Rotation",
     "exercise_type": "Isolation",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Spine", "Shoulder"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Plank", "Hollow Hold", "Dead Bug"]
+    "joint_demands": [
+      "Spine",
+      "Shoulder"
+    ]
   },
   {
     "name": "Barbell Row",
-    "primary_muscles": ["Back"],
-    "secondary_muscles": ["Biceps", "Rear Delts"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Back"
+    ],
+    "secondary_muscles": [
+      "Biceps",
+      "Rear Delts"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Hip", "Spine", "Shoulder", "Elbow"],
-    "progression": [],
-    "regression": ["Dumbbell Row", "Seated Cable Row"],
-    "substitutes": ["Pull-Up", "Dumbbell Row", "Seated Cable Row"]
+    "joint_demands": [
+      "Hip",
+      "Spine",
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Seated Cable Row",
-    "primary_muscles": ["Back"],
-    "secondary_muscles": ["Biceps", "Rear Delts"],
-    "equipment": ["Cable machine"],
+    "primary_muscles": [
+      "Back"
+    ],
+    "secondary_muscles": [
+      "Biceps",
+      "Rear Delts"
+    ],
+    "equipment": [
+      "Cable machine"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow", "Spine"],
-    "progression": ["Barbell Row"],
-    "regression": [],
-    "substitutes": ["Barbell Row", "Dumbbell Row"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Spine"
+    ]
   },
   {
     "name": "Pull-Up",
-    "primary_muscles": ["Back"],
-    "secondary_muscles": ["Biceps", "Forearms"],
-    "equipment": ["Pull-up bar"],
+    "primary_muscles": [
+      "Back"
+    ],
+    "secondary_muscles": [
+      "Biceps",
+      "Forearms"
+    ],
+    "equipment": [
+      "Pull-up bar"
+    ],
     "movement_pattern": "Vertical Pull",
     "exercise_type": "Compound",
     "experience_level": "Advanced",
     "stability_demand": "Low",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": [],
-    "regression": ["Lat Pulldown", "Dead Hang"],
-    "substitutes": ["Barbell Row", "Dumbbell Row", "Lat Pulldown"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Lat Pulldown",
-    "primary_muscles": ["Back"],
-    "secondary_muscles": ["Biceps", "Forearms"],
-    "equipment": ["Cable machine"],
+    "primary_muscles": [
+      "Back"
+    ],
+    "secondary_muscles": [
+      "Biceps",
+      "Forearms"
+    ],
+    "equipment": [
+      "Cable machine"
+    ],
     "movement_pattern": "Vertical Pull",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": ["Pull-Up"],
-    "regression": [],
-    "substitutes": ["Pull-Up", "Barbell Row", "Dumbbell Row"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Dumbbell Row",
-    "primary_muscles": ["Back"],
-    "secondary_muscles": ["Biceps", "Rear Delts"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Back"
+    ],
+    "secondary_muscles": [
+      "Biceps",
+      "Rear Delts"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": true,
-    "joint_demands": ["Shoulder", "Elbow", "Spine"],
-    "progression": ["Barbell Row"],
-    "regression": [],
-    "substitutes": ["Barbell Row", "Pull-Up", "Seated Cable Row"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow",
+      "Spine"
+    ]
   },
   {
     "name": "Barbell Curl",
-    "primary_muscles": ["Biceps"],
-    "secondary_muscles": ["Forearms"],
-    "equipment": ["Barbell"],
+    "primary_muscles": [
+      "Biceps"
+    ],
+    "secondary_muscles": [
+      "Forearms"
+    ],
+    "equipment": [
+      "Barbell"
+    ],
     "movement_pattern": "Elbow Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Wrist"],
-    "progression": ["Preacher Curl"],
-    "regression": [],
-    "substitutes": ["Hammer Curl", "Band Curl"]
+    "joint_demands": [
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Preacher Curl",
-    "primary_muscles": ["Biceps"],
-    "secondary_muscles": ["Forearms"],
-    "equipment": ["Dumbbells", "Bench"],
+    "primary_muscles": [
+      "Biceps"
+    ],
+    "secondary_muscles": [
+      "Forearms"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Bench"
+    ],
     "movement_pattern": "Elbow Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Intermediate",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow"],
-    "progression": [],
-    "regression": ["Barbell Curl", "Hammer Curl"],
-    "substitutes": ["Barbell Curl", "Hammer Curl"]
+    "joint_demands": [
+      "Elbow"
+    ]
   },
   {
     "name": "Hammer Curl",
-    "primary_muscles": ["Biceps"],
-    "secondary_muscles": ["Forearms"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Biceps"
+    ],
+    "secondary_muscles": [
+      "Forearms"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Elbow Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Wrist"],
-    "progression": ["Preacher Curl"],
-    "regression": [],
-    "substitutes": ["Barbell Curl", "Band Curl"]
+    "joint_demands": [
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Band Curl",
-    "primary_muscles": ["Biceps"],
-    "secondary_muscles": ["Forearms"],
-    "equipment": ["Resistance bands"],
+    "primary_muscles": [
+      "Biceps"
+    ],
+    "secondary_muscles": [
+      "Forearms"
+    ],
+    "equipment": [
+      "Resistance bands"
+    ],
     "movement_pattern": "Elbow Flexion",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Elbow", "Wrist"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Barbell Curl", "Hammer Curl"]
+    "joint_demands": [
+      "Elbow",
+      "Wrist"
+    ]
   },
   {
     "name": "Kettlebell Swing",
-    "primary_muscles": ["Hamstrings", "Glutes"],
-    "secondary_muscles": ["Core", "Shoulders"],
-    "equipment": ["Kettlebell"],
+    "primary_muscles": [
+      "Hamstrings",
+      "Glutes"
+    ],
+    "secondary_muscles": [
+      "Core",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Kettlebell"
+    ],
     "movement_pattern": "Hinge",
     "exercise_type": "Compound",
     "experience_level": "Intermediate",
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Hip", "Spine", "Shoulder"],
-    "progression": ["Trap Bar Deadlift"],
-    "regression": [],
-    "substitutes": ["Trap Bar Deadlift", "Rowing Machine Intervals"]
+    "joint_demands": [
+      "Hip",
+      "Spine",
+      "Shoulder"
+    ]
   },
   {
     "name": "Rowing Machine Intervals",
-    "primary_muscles": ["Back", "Quads"],
-    "secondary_muscles": ["Hamstrings", "Biceps", "Core"],
-    "equipment": ["Cardio machine"],
+    "primary_muscles": [
+      "Back",
+      "Quads"
+    ],
+    "secondary_muscles": [
+      "Hamstrings",
+      "Biceps",
+      "Core"
+    ],
+    "equipment": [
+      "Cardio machine"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Hip", "Knee", "Spine", "Shoulder", "Elbow"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Trap Bar Deadlift", "Kettlebell Swing"]
+    "joint_demands": [
+      "Hip",
+      "Knee",
+      "Spine",
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Burpees",
-    "primary_muscles": ["Quads", "Chest", "Core"],
-    "secondary_muscles": ["Shoulders", "Glutes", "Hamstrings"],
+    "primary_muscles": [
+      "Quads",
+      "Chest",
+      "Core"
+    ],
+    "secondary_muscles": [
+      "Shoulders",
+      "Glutes",
+      "Hamstrings"
+    ],
     "equipment": [],
     "movement_pattern": "Full-Body Complex",
     "exercise_type": "Compound",
@@ -730,105 +1060,150 @@
     "stability_demand": "Medium",
     "skill_demand": "Medium",
     "unilateral": false,
-    "joint_demands": ["Knee", "Hip", "Ankle", "Shoulder", "Elbow"],
-    "progression": [],
-    "regression": [],
-    "substitutes": ["Kettlebell Swing", "Rowing Machine Intervals"]
+    "joint_demands": [
+      "Knee",
+      "Hip",
+      "Ankle",
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Cable Face Pull",
-    "primary_muscles": ["Rear Delts"],
-    "secondary_muscles": ["Back", "Shoulders"],
-    "equipment": ["Cable machine"],
+    "primary_muscles": [
+      "Rear Delts"
+    ],
+    "secondary_muscles": [
+      "Back",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Cable machine"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Elbow"],
-    "progression": [],
-    "regression": ["Band Pull-Apart"],
-    "substitutes": ["Reverse Fly", "Band Pull-Apart"]
+    "joint_demands": [
+      "Shoulder",
+      "Elbow"
+    ]
   },
   {
     "name": "Reverse Fly",
-    "primary_muscles": ["Rear Delts"],
-    "secondary_muscles": ["Back"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Rear Delts"
+    ],
+    "secondary_muscles": [
+      "Back"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder"],
-    "progression": [],
-    "regression": ["Band Pull-Apart"],
-    "substitutes": ["Cable Face Pull", "Band Pull-Apart"]
+    "joint_demands": [
+      "Shoulder"
+    ]
   },
   {
     "name": "Band Pull-Apart",
-    "primary_muscles": ["Rear Delts"],
-    "secondary_muscles": ["Back"],
-    "equipment": ["Resistance bands"],
+    "primary_muscles": [
+      "Rear Delts"
+    ],
+    "secondary_muscles": [
+      "Back"
+    ],
+    "equipment": [
+      "Resistance bands"
+    ],
     "movement_pattern": "Horizontal Pull",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder"],
-    "progression": ["Reverse Fly", "Cable Face Pull"],
-    "regression": [],
-    "substitutes": ["Cable Face Pull", "Reverse Fly"]
+    "joint_demands": [
+      "Shoulder"
+    ]
   },
   {
     "name": "Farmer's Carry",
-    "primary_muscles": ["Forearms", "Core"],
-    "secondary_muscles": ["Back", "Shoulders"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Forearms",
+      "Core"
+    ],
+    "secondary_muscles": [
+      "Back",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Carry",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "Medium",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Wrist", "Spine"],
-    "progression": ["Suitcase Carry"],
-    "regression": [],
-    "substitutes": ["Dead Hang", "Suitcase Carry"]
+    "joint_demands": [
+      "Shoulder",
+      "Wrist",
+      "Spine"
+    ]
   },
   {
     "name": "Dead Hang",
-    "primary_muscles": ["Forearms"],
-    "secondary_muscles": ["Shoulders", "Back"],
-    "equipment": ["Pull-up bar"],
+    "primary_muscles": [
+      "Forearms"
+    ],
+    "secondary_muscles": [
+      "Shoulders",
+      "Back"
+    ],
+    "equipment": [
+      "Pull-up bar"
+    ],
     "movement_pattern": "Isometric Hang",
     "exercise_type": "Isolation",
     "experience_level": "Beginner",
     "stability_demand": "Low",
     "skill_demand": "Low",
     "unilateral": false,
-    "joint_demands": ["Shoulder", "Wrist"],
-    "progression": ["Pull-Up"],
-    "regression": [],
-    "substitutes": ["Farmer's Carry", "Suitcase Carry"]
+    "joint_demands": [
+      "Shoulder",
+      "Wrist"
+    ]
   },
   {
     "name": "Suitcase Carry",
-    "primary_muscles": ["Core", "Forearms"],
-    "secondary_muscles": ["Back", "Shoulders"],
-    "equipment": ["Dumbbells"],
+    "primary_muscles": [
+      "Core",
+      "Forearms"
+    ],
+    "secondary_muscles": [
+      "Back",
+      "Shoulders"
+    ],
+    "equipment": [
+      "Dumbbells"
+    ],
     "movement_pattern": "Carry",
     "exercise_type": "Compound",
     "experience_level": "Beginner",
     "stability_demand": "High",
     "skill_demand": "Medium",
     "unilateral": true,
-    "joint_demands": ["Shoulder", "Wrist", "Spine"],
-    "progression": [],
-    "regression": ["Farmer's Carry"],
-    "substitutes": ["Farmer's Carry", "Dead Hang"]
+    "joint_demands": [
+      "Shoulder",
+      "Wrist",
+      "Spine"
+    ]
   }
 ]

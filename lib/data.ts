@@ -300,9 +300,10 @@ export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
 
 // The exercise library (backend/data/exercises.json) is the single source of
 // truth for exercise metadata — every exercise anywhere in the app (mock plan
-// or backend-generated) is drawn from it, so the Log page's swap menu reads
-// muscle group and validated substitutes directly from the same file instead
-// of keeping its own separate, hand-authored copy of this data.
+// or backend-generated) is drawn from it. Substitutes/progression/regression
+// aren't stored here anymore — they're computed by the backend (see
+// backend/exercise_library.py) from these attributes, and fetched via
+// fetchExerciseRelations in lib/api.ts.
 type LibraryExercise = {
   name: string;
   primary_muscles: string[];
@@ -315,21 +316,13 @@ type LibraryExercise = {
   skill_demand: string;
   unilateral: boolean;
   joint_demands: string[];
-  progression: string[];
-  regression: string[];
-  substitutes: string[];
 };
 
 const EXERCISE_LIBRARY = exerciseLibraryData as LibraryExercise[];
 
-// Small fallback for the rare case an exercise name doesn't match the
-// library (e.g. a hand-typed name from some future data source).
-const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", "Kettlebell Swing"];
-
-export function libraryInfoForExercise(name: string): { muscleGroup: string | null; alternates: string[] } {
+export function libraryInfoForExercise(name: string): { muscleGroup: string | null } {
   const entry = EXERCISE_LIBRARY.find((ex) => ex.name === name);
-  if (!entry) return { muscleGroup: null, alternates: DEFAULT_ALTERNATES };
-  return { muscleGroup: entry.primary_muscles.join(" & "), alternates: entry.substitutes };
+  return { muscleGroup: entry ? entry.primary_muscles.join(" & ") : null };
 }
 
 export const PROGRESS_ACTIVITY = {

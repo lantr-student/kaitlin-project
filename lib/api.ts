@@ -38,6 +38,24 @@ async function postJson<TResponse>(path: string, body: unknown, friendlyMessage:
   return (await res.json()) as TResponse;
 }
 
+async function getJson<TResponse>(path: string, friendlyMessage: string): Promise<TResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${getApiUrl()}${path}`, { signal: AbortSignal.timeout(60_000) });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new ApiError("This is taking longer than expected — please try again.");
+    }
+    throw new ApiError("Couldn't reach Spotter's servers. Check your connection and try again.");
+  }
+
+  if (!res.ok) {
+    throw new ApiError(friendlyMessage, res.status);
+  }
+
+  return (await res.json()) as TResponse;
+}
+
 export async function fetchPlan(answers: OnboardingAnswers): Promise<PlanDay[]> {
   return postJson<PlanDay[]>("/plan", answers, "Spotter couldn't build your plan right now. Please try again.");
 }
@@ -49,4 +67,13 @@ export async function sendChatMessage(message: string): Promise<string> {
     "Spotter couldn't send that message. Please try again."
   );
   return data.response;
+}
+
+export type ExerciseRelations = { substitutes: string[]; progression: string[]; regression: string[] };
+
+export async function fetchExerciseRelations(name: string): Promise<ExerciseRelations> {
+  return getJson<ExerciseRelations>(
+    `/exercises/${encodeURIComponent(name)}/relations`,
+    "Spotter couldn't load exercise alternatives right now."
+  );
 }

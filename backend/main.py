@@ -1,9 +1,7 @@
-import json
 import logging
 import os
 import re
 import time
-from pathlib import Path
 from typing import Annotated, Optional
 
 from dotenv import load_dotenv
@@ -13,6 +11,25 @@ from langchain_core.messages import ToolMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field, ValidationError
+
+from exercise_library import (
+    _EQUIPMENT_ITEMS,
+    _EXERCISE_LIBRARY,
+    _EXPERIENCE_LEVELS,
+    _MOVEMENT_PATTERNS,
+    _MUSCLE_GROUPS,
+    _filter_candidates,
+    _format_candidates,
+    _format_exercise,
+    _format_exercise_detail,
+    _matches_equipment,
+    _matches_muscle_group,
+    compute_progression,
+    compute_regression,
+    compute_substitutes,
+    find_exercise,
+    ProgressionResult,
+)
 
 load_dotenv()
 
@@ -65,10 +82,6 @@ class TimingCallback(BaseCallbackHandler):
             self.tool_call_count,
         )
         return total
-
-EXERCISE_LIBRARY_PATH = Path(__file__).parent / "data" / "exercises.json"
-with open(EXERCISE_LIBRARY_PATH) as f:
-    _EXERCISE_LIBRARY: list[dict] = json.load(f)
 
 SYSTEM_PROMPT = (
     "You are a personal training coach. Your tone is confident, calm, and "
@@ -128,83 +141,6 @@ def _get_llm() -> ChatOpenAI:
     return _llm_instance
 
 
-def _matches_equipment(exercise_equipment: list[str], available: Optional[list[str]]) -> bool:
-    if available is None:
-        return True
-    return set(exercise_equipment).issubset(set(available))
-
-
-def _matches_muscle_group(exercise: dict, muscle_group: str) -> bool:
-    target = muscle_group.lower()
-    if any(m.lower() == target for m in exercise["primary_muscles"]):
-        return True
-    return any(m.lower() == target for m in exercise["secondary_muscles"])
-
-
-def _format_exercise(exercise: dict) -> str:
-    """Compact one-line summary for list contexts (discovery results, substitute
-    lists, plan candidates)."""
-    equipment = ", ".join(exercise["equipment"]) if exercise["equipment"] else "Bodyweight only"
-    muscles = "/".join(exercise["primary_muscles"])
-    if exercise["secondary_muscles"]:
-        muscles += f" (also works {', '.join(exercise['secondary_muscles'])})"
-    return (
-        f"{exercise['name']} ({muscles}, {exercise['experience_level']}, "
-        f"{exercise['movement_pattern']}, {exercise['exercise_type']}, equipment: {equipment})"
-    )
-
-
-def _format_exercise_detail(exercise: dict) -> str:
-    """Full profile for a single exercise, used when a specific exercise_name
-    lookup succeeds — includes the attributes _format_exercise omits to stay
-    concise (stability/skill demand, joints, progression/regression)."""
-    joints = ", ".join(exercise["joint_demands"])
-    lines = [
-        _format_exercise(exercise),
-        f"Unilateral: {'yes' if exercise['unilateral'] else 'no'}. "
-        f"Stability demand: {exercise['stability_demand']}. Skill demand: {exercise['skill_demand']}. "
-        f"Joints loaded: {joints}.",
-    ]
-    if exercise["progression"]:
-        lines.append(f"Progression (harder variants): {', '.join(exercise['progression'])}.")
-    if exercise["regression"]:
-        lines.append(f"Regression (easier variants): {', '.join(exercise['regression'])}.")
-    return " ".join(lines)
-
-
-_MUSCLE_GROUPS = sorted(
-    {m for ex in _EXERCISE_LIBRARY for m in ex["primary_muscles"]}
-    | {m for ex in _EXERCISE_LIBRARY for m in ex["secondary_muscles"]}
-)
-_EQUIPMENT_ITEMS = sorted({item for ex in _EXERCISE_LIBRARY for item in ex["equipment"]})
-_EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced"]
-_MOVEMENT_PATTERNS = sorted({ex["movement_pattern"] for ex in _EXERCISE_LIBRARY})
-
-
-def _filter_candidates(equipment: list[str], experience_level: str) -> list[dict]:
-    """Deterministic equipment/experience filter over the exercise library, run
-    in plain Python instead of letting the LLM discover candidates one at a
-    time via tool calls (which was costing a full LLM round-trip per guess —
-    see PLAN_SYSTEM_PROMPT for where the filtered result gets used).
-
-    Includes exercises at or below the client's stated experience level (an
-    Advanced client can still do Beginner/Intermediate movements), not just
-    exact-level matches — exact-match only leaves just 2-3 candidates for an
-    Advanced client in this library, nowhere near enough to fill a full week.
-    """
-    max_level = _EXPERIENCE_LEVELS.index(experience_level) if experience_level in _EXPERIENCE_LEVELS else len(_EXPERIENCE_LEVELS) - 1
-    return [
-        ex
-        for ex in _EXERCISE_LIBRARY
-        if _matches_equipment(ex["equipment"], equipment)
-        and _EXPERIENCE_LEVELS.index(ex["experience_level"]) <= max_level
-    ]
-
-
-def _format_candidates(candidates: list[dict]) -> str:
-    return "\n".join(f"- {_format_exercise(ex)}" for ex in candidates)
-
-
 @tool
 def lookup_exercise(
     exercise_name: Annotated[
@@ -223,10 +159,19 @@ def lookup_exercise(
     experience_level: Annotated[
         str, Field(description=f"One of: {', '.join(_EXPERIENCE_LEVELS)}.")
     ] = "",
+    direction: Annotated[
+        str,
+        Field(
+            description="Only relevant with exercise_name. 'similar' (default) finds the closest same-difficulty "
+            "swap — use this for ordinary substitution requests (equipment unavailable, wants variety, etc). "
+            "Use 'harder' or 'easier' ONLY when the client explicitly asks for a harder or easier variant."
+        ),
+    ] = "similar",
 ) -> str:
-    """Look up exercises in Spotter's library by name, muscle group, or movement pattern — filtered by the client's equipment and experience level — and surface validated substitutes plus easier/harder variants when a movement or piece of equipment isn't available."""
+    """Look up exercises in Spotter's library by name, muscle group, or movement pattern — filtered by the client's equipment and experience level — and surface the closest-matching substitute, or an easier/harder variant if the client asked for one."""
     primary_input = exercise_name or muscle_group or movement_pattern or "unspecified"
     logger.info("tool=lookup_exercise input=%s", primary_input)
+    direction = direction.lower() if direction.lower() in ("harder", "easier") else "similar"
 
     def matches_filters(ex: dict) -> bool:
         if not _matches_equipment(ex["equipment"], equipment):
@@ -237,22 +182,47 @@ def lookup_exercise(
             return False
         return True
 
+    def matches_pattern(ex: dict) -> bool:
+        # Equipment/experience are already applied inside compute_substitutes /
+        # compute_progression / compute_regression below (with different rules
+        # per call — see their docstrings), so this only layers movement_pattern
+        # on top when the caller asked for one.
+        return not movement_pattern or ex["movement_pattern"].lower() == movement_pattern.lower()
+
     if exercise_name:
-        target = next(
-            (ex for ex in _EXERCISE_LIBRARY if ex["name"].lower() == exercise_name.lower()), None
-        )
+        target = find_exercise(exercise_name)
         if target is None:
             return f"No exercise named '{exercise_name}' found in the library."
-        subs = [
-            ex for ex in _EXERCISE_LIBRARY
-            if ex["name"] in target["substitutes"] and matches_filters(ex)
-        ]
-        result = _format_exercise_detail(target)
-        if subs:
-            listed = "; ".join(_format_exercise(ex) for ex in subs)
-            result += f" Substitutes: {listed}"
-        elif target["substitutes"]:
-            result += " No substitute matched the given equipment/experience/pattern filters."
+
+        subs: list[dict] = []
+        progression = ProgressionResult([], False)
+        regression: list[dict] = []
+
+        if direction == "harder":
+            progression_result = compute_progression(target, equipment=equipment)
+            progression = ProgressionResult(
+                [ex for ex in progression_result.exercises if matches_pattern(ex)],
+                progression_result.is_same_difficulty,
+            )
+        elif direction == "easier":
+            regression = [ex for ex in compute_regression(target, equipment=equipment) if matches_pattern(ex)]
+        else:
+            subs = [
+                ex for ex in compute_substitutes(target, equipment=equipment, experience_level=experience_level)
+                if matches_pattern(ex)
+            ]
+
+        result = _format_exercise_detail(target, progression, regression)
+        if direction == "similar":
+            if subs:
+                listed = "; ".join(_format_exercise(ex) for ex in subs)
+                result += f" Substitutes: {listed}"
+            else:
+                result += " No substitute matched the given equipment/experience/pattern filters."
+        elif direction == "harder" and not progression.exercises:
+            result += " No progression options matched the given equipment/pattern filters."
+        elif direction == "easier" and not regression:
+            result += " No regression options matched the given equipment/pattern filters."
         return result
 
     if muscle_group or movement_pattern:

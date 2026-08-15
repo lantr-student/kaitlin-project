@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from exercise_library import compute_progression, compute_regression, compute_substitutes, find_exercise
 from main import build_agent, build_plan_llm, generate_plan, get_reply, OnboardingRequest, PlanDayModel
 
 app = FastAPI()
@@ -27,9 +28,30 @@ class ChatResponse(BaseModel):
     response: str
 
 
+class ExerciseRelationsResponse(BaseModel):
+    substitutes: list[str]
+    progression: list[str]
+    progression_is_same_difficulty: bool
+    regression: list[str]
+
+
 @app.get("/")
 def root():
     return {"status": "ok", "message": "Coach backend is running"}
+
+
+@app.get("/exercises/{name}/relations", response_model=ExerciseRelationsResponse)
+def exercise_relations(name: str):
+    exercise = find_exercise(name)
+    if exercise is None:
+        raise HTTPException(status_code=404, detail=f"No exercise named '{name}' found.")
+    progression = compute_progression(exercise)
+    return ExerciseRelationsResponse(
+        substitutes=[ex["name"] for ex in compute_substitutes(exercise)],
+        progression=[ex["name"] for ex in progression.exercises],
+        progression_is_same_difficulty=progression.is_same_difficulty,
+        regression=[ex["name"] for ex in compute_regression(exercise)],
+    )
 
 
 @app.post("/chat", response_model=ChatResponse)
