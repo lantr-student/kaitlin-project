@@ -8,6 +8,46 @@ removed, so it never mentions anything that no longer exists.
 ================================================================================
 
 2026-08-14
+- Substantially enriched backend/data/exercises.json's schema: muscle_group
+  is now primary_muscles, a real list (e.g. Back Squat is Quads AND Glutes,
+  not just Quads), plus secondary_muscles; "Full Body" and "Grip/Core" —
+  placeholder combo-labels from the original single-muscle schema — are
+  gone in favor of the real muscles they stood for (Trap Bar Deadlift is
+  now Quads/Hamstrings/Glutes; Farmer's Carry is now Forearms/Core), and
+  Glutes/Adductors/Forearms joined the muscle vocabulary as a result. Also
+  added movement_pattern (Squat, Hinge, Horizontal Push, etc.),
+  exercise_type (Compound/Isolation), stability_demand, skill_demand,
+  unilateral, joint_demands, and progression/regression chains (easier
+  and harder variants of the same movement, e.g. Back Squat's progression
+  is Front Squat/Pause Squat, regression is Goblet Squat) — added 3 new
+  exercises (Front Squat, Pause Squat, Preacher Curl) so those chains
+  resolve to real entries. lookup_exercise now matches on primary or
+  secondary muscle, filters by movement_pattern, and gives a full profile
+  (stability/skill demand, joints, progression/regression) for a
+  named-exercise lookup, not just its muscle group and substitutes.
+  lib/data.ts's type and Swap-label logic were updated for the new list
+  shape (multiple primary muscles now join into one label, e.g. "Quads &
+  Glutes") — no other frontend changes needed.
+  Did a full accuracy pass afterward and fixed several errors: Trap Bar
+  Deadlift was marked Advanced despite being the more beginner-friendly
+  deadlift variant in real coaching practice (now Intermediate, with a
+  proper Advanced conventional Deadlift added above it); Glute Bridge
+  listed Hamstrings as a co-primary mover when it's really Glutes-primary
+  with Hamstrings assisting; two exercises had equipment that didn't
+  match their own name ("Cable Face Pull" was tagged Resistance bands,
+  "Kettlebell Swing" was tagged Dumbbells) because Cable machine and
+  Kettlebell didn't exist as equipment yet; and a few progression/
+  regression links crossed unrelated movement patterns (e.g. Walking
+  Lunge listed Goblet Squat as its progression, but lunges and squats
+  are different patterns) and were corrected or removed. Equipment
+  vocab grew from 8 to 11 items (added Kettlebell, Cable machine, Leg
+  machine — reflected in onboarding's equipment picker, lib/data.ts) to
+  fix those mismatches properly instead of just renaming exercises, and
+  to unlock 16 new popular exercises the old vocab couldn't support:
+  Deadlift, Lat Pulldown, Seated Cable Row, Tricep Pushdown, Leg Press,
+  Leg Extension, Leg Curl, Bulgarian Split Squat, Step-Up, Dumbbell Fly,
+  Arnold Press, Front Raise, Push Press, Bench Dips, Dead Bug, and
+  Burpees — bringing the library to 52 exercises total.
 - Made backend/data/exercises.json the single source of exercise data
   app-wide. The frontend's separate hand-authored swap-menu alternates
   list is gone — the Log page's Swap option now reads muscle group and
@@ -27,6 +67,9 @@ removed, so it never mentions anything that no longer exists.
   "[lookup_exercise]" or "[no tool]" — showing whether the tool fired,
   and every tool call is logged server-side as
   "tool=lookup_exercise input=<value>" for visibility in Railway's logs.
+  Also told the coach to reply in plain text only — it had started
+  wrapping exercise names in markdown bold, which the chat UI doesn't
+  render, so it was showing up as literal asterisks.
 
 2026-08-13
 - Fixed a severe plan-generation slowdown: the LLM was calling the
@@ -237,6 +280,14 @@ Backend (kaitlin-project/backend/)
   agent with a coach persona) and POST /plan (LLM-generates a 7-day
   plan from a submitted profile, returned as structured JSON matching
   the frontend's PlanDay[] shape).
+- The coach agent (POST /chat) has one tool, lookup_exercise, backed by
+  an authored exercise library (backend/data/exercises.json) with real
+  anatomical primary/secondary muscles, equipment, movement pattern,
+  compound/isolation type, and progression/regression chains — used to
+  ground exercise swaps and equipment questions instead of guessing.
+  /plan generation reads from the same library, pre-filtered by
+  equipment/experience in Python rather than via tool calls (kept as a
+  single LLM call for latency).
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state

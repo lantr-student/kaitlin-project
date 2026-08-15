@@ -207,7 +207,6 @@ export default function TrajectoryChart({ goal, trajectory }: { goal: Goal; traj
 
       <div className={`mt-2 flex flex-none justify-between text-xs ${FAINT}`}>
         <span>{trajectory[0].label}</span>
-        <span>{lastActual ? trajectory[lastActual.i].label : ""}</span>
         <span>{trajectory[trajectory.length - 1].label}</span>
       </div>
     </div>

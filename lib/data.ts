@@ -69,10 +69,13 @@ export const EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced"];
 export const EQUIPMENT_OPTIONS = [
   "Barbell",
   "Dumbbells",
+  "Kettlebell",
   "Bench",
   "Squat rack",
   "Pull-up bar",
   "Resistance bands",
+  "Cable machine",
+  "Leg machine",
   "Cardio machine",
   "Bodyweight only",
 ];
@@ -302,9 +305,18 @@ export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
 // of keeping its own separate, hand-authored copy of this data.
 type LibraryExercise = {
   name: string;
-  muscle_group: string;
+  primary_muscles: string[];
+  secondary_muscles: string[];
   equipment: string[];
+  movement_pattern: string;
+  exercise_type: string;
   experience_level: string;
+  stability_demand: string;
+  skill_demand: string;
+  unilateral: boolean;
+  joint_demands: string[];
+  progression: string[];
+  regression: string[];
   substitutes: string[];
 };
 
@@ -317,7 +329,7 @@ const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", 
 export function libraryInfoForExercise(name: string): { muscleGroup: string | null; alternates: string[] } {
   const entry = EXERCISE_LIBRARY.find((ex) => ex.name === name);
   if (!entry) return { muscleGroup: null, alternates: DEFAULT_ALTERNATES };
-  return { muscleGroup: entry.muscle_group, alternates: entry.substitutes };
+  return { muscleGroup: entry.primary_muscles.join(" & "), alternates: entry.substitutes };
 }
 
 export const PROGRESS_ACTIVITY = {

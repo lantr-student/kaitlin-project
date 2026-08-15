@@ -26,7 +26,6 @@ export default function ConsistencyBarChart({ points }: { points: WeeklyConsiste
   const yAt = (value: number) => PADDING.top + plotH - (value / maxValue) * plotH;
 
   const yTicks = [0, Math.round(maxValue / 2), maxValue];
-  const todayIndex = points.findIndex((p) => p.status === "current");
   const hovered = hoverIndex !== null ? points[hoverIndex] : null;
 
   return (
@@ -156,7 +155,6 @@ export default function ConsistencyBarChart({ points }: { points: WeeklyConsiste
 
       <div className={`mt-2 flex flex-none justify-between text-xs ${FAINT}`}>
         <span>{points[0]?.label}</span>
-        <span>{todayIndex >= 0 ? "This week" : ""}</span>
         <span>{points[points.length - 1]?.label} (goal)</span>
       </div>
     </div>

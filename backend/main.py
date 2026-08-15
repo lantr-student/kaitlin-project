@@ -90,7 +90,9 @@ SYSTEM_PROMPT = (
     "layering in intensity.' When the client asks about swapping an exercise, needs "
     "an alternative because a piece of equipment isn't available, or asks what "
     "exercises fit their equipment or experience level, use the lookup_exercise "
-    "tool rather than guessing."
+    "tool rather than guessing. Write in plain text only, no markdown — the chat "
+    "UI doesn't render formatting, so never wrap exercise names or anything else "
+    "in asterisks or other markdown syntax."
 )
 
 
@@ -132,17 +134,51 @@ def _matches_equipment(exercise_equipment: list[str], available: Optional[list[s
     return set(exercise_equipment).issubset(set(available))
 
 
+def _matches_muscle_group(exercise: dict, muscle_group: str) -> bool:
+    target = muscle_group.lower()
+    if any(m.lower() == target for m in exercise["primary_muscles"]):
+        return True
+    return any(m.lower() == target for m in exercise["secondary_muscles"])
+
+
 def _format_exercise(exercise: dict) -> str:
+    """Compact one-line summary for list contexts (discovery results, substitute
+    lists, plan candidates)."""
     equipment = ", ".join(exercise["equipment"]) if exercise["equipment"] else "Bodyweight only"
+    muscles = "/".join(exercise["primary_muscles"])
+    if exercise["secondary_muscles"]:
+        muscles += f" (also works {', '.join(exercise['secondary_muscles'])})"
     return (
-        f"{exercise['name']} ({exercise['muscle_group']}, {exercise['experience_level']}, "
-        f"equipment: {equipment})"
+        f"{exercise['name']} ({muscles}, {exercise['experience_level']}, "
+        f"{exercise['movement_pattern']}, {exercise['exercise_type']}, equipment: {equipment})"
     )
 
 
-_MUSCLE_GROUPS = sorted({ex["muscle_group"] for ex in _EXERCISE_LIBRARY})
+def _format_exercise_detail(exercise: dict) -> str:
+    """Full profile for a single exercise, used when a specific exercise_name
+    lookup succeeds — includes the attributes _format_exercise omits to stay
+    concise (stability/skill demand, joints, progression/regression)."""
+    joints = ", ".join(exercise["joint_demands"])
+    lines = [
+        _format_exercise(exercise),
+        f"Unilateral: {'yes' if exercise['unilateral'] else 'no'}. "
+        f"Stability demand: {exercise['stability_demand']}. Skill demand: {exercise['skill_demand']}. "
+        f"Joints loaded: {joints}.",
+    ]
+    if exercise["progression"]:
+        lines.append(f"Progression (harder variants): {', '.join(exercise['progression'])}.")
+    if exercise["regression"]:
+        lines.append(f"Regression (easier variants): {', '.join(exercise['regression'])}.")
+    return " ".join(lines)
+
+
+_MUSCLE_GROUPS = sorted(
+    {m for ex in _EXERCISE_LIBRARY for m in ex["primary_muscles"]}
+    | {m for ex in _EXERCISE_LIBRARY for m in ex["secondary_muscles"]}
+)
 _EQUIPMENT_ITEMS = sorted({item for ex in _EXERCISE_LIBRARY for item in ex["equipment"]})
 _EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced"]
+_MOVEMENT_PATTERNS = sorted({ex["movement_pattern"] for ex in _EXERCISE_LIBRARY})
 
 
 def _filter_candidates(equipment: list[str], experience_level: str) -> list[dict]:
@@ -172,10 +208,13 @@ def _format_candidates(candidates: list[dict]) -> str:
 @tool
 def lookup_exercise(
     exercise_name: Annotated[
-        str, Field(description="Exact exercise name to find substitutes for, e.g. 'Back Squat'.")
+        str, Field(description="Exact exercise name to get full details and substitutes for, e.g. 'Back Squat'.")
     ] = "",
     muscle_group: Annotated[
         str, Field(description=f"One of: {', '.join(_MUSCLE_GROUPS)}.")
+    ] = "",
+    movement_pattern: Annotated[
+        str, Field(description=f"One of: {', '.join(_MOVEMENT_PATTERNS)}.")
     ] = "",
     equipment: Annotated[
         Optional[list[str]],
@@ -185,14 +224,16 @@ def lookup_exercise(
         str, Field(description=f"One of: {', '.join(_EXPERIENCE_LEVELS)}.")
     ] = "",
 ) -> str:
-    """Look up exercises in Spotter's library by name or muscle group — filtered by the client's equipment and experience level — and surface validated same-muscle-group substitutes when a movement or piece of equipment isn't available."""
-    primary_input = exercise_name or muscle_group or "unspecified"
+    """Look up exercises in Spotter's library by name, muscle group, or movement pattern — filtered by the client's equipment and experience level — and surface validated substitutes plus easier/harder variants when a movement or piece of equipment isn't available."""
+    primary_input = exercise_name or muscle_group or movement_pattern or "unspecified"
     logger.info("tool=lookup_exercise input=%s", primary_input)
 
     def matches_filters(ex: dict) -> bool:
         if not _matches_equipment(ex["equipment"], equipment):
             return False
         if experience_level and ex["experience_level"].lower() != experience_level.lower():
+            return False
+        if movement_pattern and ex["movement_pattern"].lower() != movement_pattern.lower():
             return False
         return True
 
@@ -206,25 +247,27 @@ def lookup_exercise(
             ex for ex in _EXERCISE_LIBRARY
             if ex["name"] in target["substitutes"] and matches_filters(ex)
         ]
-        if not subs:
-            return (
-                f"{target['name']} targets {target['muscle_group']}, but no substitute "
-                "matched the given equipment/experience filters."
-            )
-        listed = "; ".join(_format_exercise(ex) for ex in subs)
-        return f"{target['name']} targets {target['muscle_group']}. Substitutes: {listed}"
+        result = _format_exercise_detail(target)
+        if subs:
+            listed = "; ".join(_format_exercise(ex) for ex in subs)
+            result += f" Substitutes: {listed}"
+        elif target["substitutes"]:
+            result += " No substitute matched the given equipment/experience/pattern filters."
+        return result
 
-    if muscle_group:
+    if muscle_group or movement_pattern:
         matches = [
             ex for ex in _EXERCISE_LIBRARY
-            if ex["muscle_group"].lower() == muscle_group.lower() and matches_filters(ex)
+            if (not muscle_group or _matches_muscle_group(ex, muscle_group))
+            and matches_filters(ex)
         ]
         if not matches:
-            return f"No exercises found for muscle group '{muscle_group}' matching those filters."
+            return "No exercises found matching those filters."
         listed = "; ".join(_format_exercise(ex) for ex in matches)
-        return f"Exercises for {muscle_group}: {listed}"
+        label = muscle_group or movement_pattern
+        return f"Exercises for {label}: {listed}"
 
-    return "Provide an exercise_name or muscle_group to look up."
+    return "Provide an exercise_name, muscle_group, or movement_pattern to look up."
 
 
 def build_agent():
