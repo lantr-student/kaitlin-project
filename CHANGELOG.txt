@@ -7,7 +7,38 @@ removed, so it never mentions anything that no longer exists.
 
 ================================================================================
 
+2026-08-14
+- Made backend/data/exercises.json the single source of exercise data
+  app-wide. The frontend's separate hand-authored swap-menu alternates
+  list is gone — the Log page's Swap option now reads muscle group and
+  validated substitutes straight from the same JSON file (imported
+  directly, no new API call). Also renamed 5 exercises in the mock
+  fallback plan ("Walking Lunges" → "Walking Lunge", "Leg Press" →
+  "Glute Bridge", etc.) so every exercise in the app, mock or
+  real-generated, now matches a real library entry.
+- Gave the coach agent its first tool: lookup_exercise, backed by a new
+  authored exercise library (backend/data/exercises.json — 33 exercises
+  across all 11 muscle groups, each with equipment, experience level,
+  and validated same-muscle-group substitutes). The agent can look up
+  an exercise by name or muscle group, filtered by the client's
+  equipment and experience level, and pull a legal substitute when a
+  movement or piece of equipment isn't available (e.g. the squat rack
+  being taken). Every Coach chat reply now ends with a bracketed tag —
+  "[lookup_exercise]" or "[no tool]" — showing whether the tool fired,
+  and every tool call is logged server-side as
+  "tool=lookup_exercise input=<value>" for visibility in Railway's logs.
+
 2026-08-13
+- Fixed a severe plan-generation slowdown: the LLM was calling the
+  lookup_exercise tool many times per plan (often guessing at exercise
+  name variants that didn't match), each costing a full extra model
+  round-trip — one test run hit 22+ LLM calls and still hadn't finished
+  after 90 seconds. Exercises are now filtered deterministically in
+  Python by equipment/experience and handed to the model directly, so
+  plan generation is a single LLM call (~34s in testing, same 7-day/
+  correct-training-day-count output, no invented exercises). Also added
+  timing/call-count logging for both /plan and /chat. lookup_exercise
+  is unchanged for the chat endpoint's one-off exercise swaps.
 - Enabled CORS on the backend API, restricted to the deployed frontend
   origin and localhost — no wildcard.
 - Wired the app to the real backend: onboarding now generates a real
@@ -173,6 +204,10 @@ Coach page
 - While waiting for a reply, the Coach avatar icon connects through a small
   circle to a rounded "thinking" bubble with three bouncing dots, which
   resolves into the real reply bubble once it arrives.
+- The coach's replies can now call a lookup_exercise tool (backend-side)
+  to ground exercise swaps/equipment questions in a real exercise
+  library instead of guessing; every reply bubble ends with a bracketed
+  "[lookup_exercise]" or "[no tool]" tag showing whether it did.
 
 Profile page (new)
 - New page (5th BottomNav tab) with six stat tiles, each with its own

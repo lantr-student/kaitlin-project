@@ -8,7 +8,7 @@ import { StickyNote } from "@/components/StickyNote";
 import { ProgressRing } from "@/components/ProgressRing";
 import { PencilIcon } from "@/components/icons";
 import { useAppState } from "@/components/AppStateProvider";
-import { alternatesForMuscleGroup, type Exercise, type SetProgress } from "@/lib/data";
+import { libraryInfoForExercise, type Exercise, type SetProgress } from "@/lib/data";
 import { quicksand, caveat, ACTIVE_STROKE, DONE_STROKE, DONE_TEXT, INK, MUTED, FAINT, PRIMARY_BUTTON } from "@/lib/theme";
 
 export default function LogWorkout() {
@@ -88,7 +88,8 @@ export default function LogWorkout() {
           {todaysWorkout.exercises.map((exercise, exerciseIndex) => {
             const isLastRow = Math.floor(exerciseIndex / 2) === lastRow;
             const openLeft = exerciseIndex % 2 === 1;
-            const muscleGroup = exercise.muscleGroup ?? todaysWorkout.focus;
+            const libraryInfo = libraryInfoForExercise(exercise.name);
+            const muscleGroup = libraryInfo.muscleGroup ?? todaysWorkout.focus;
             return (
               <NotebookSection
                 key={exercise.name}
@@ -98,7 +99,7 @@ export default function LogWorkout() {
                 onUpdateSet={(setIndex, field, value) => updateSetField(exerciseIndex, setIndex, field, value)}
                 why={whyText}
                 muscleGroup={muscleGroup}
-                alternates={alternatesForMuscleGroup(muscleGroup)}
+                alternates={libraryInfo.alternates}
                 onSwap={(name) => swapExercise(exerciseIndex, name)}
                 openLeft={openLeft}
                 openUp={isLastRow}

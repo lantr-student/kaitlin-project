@@ -1,23 +1,81 @@
+import json
+import logging
 import os
 import re
-from typing import Optional
+import time
+from pathlib import Path
+from typing import Annotated, Optional
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import ToolMessage
+from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field, ValidationError
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
+
+
+class TimingCallback(BaseCallbackHandler):
+    """Logs per-LLM-call and per-tool-call timing/counts for one request, plus
+    a total-time summary. Attach via config={"callbacks": [...]} on invoke()."""
+
+    def __init__(self, label: str):
+        self.label = label
+        self.start_time = time.perf_counter()
+        self.llm_call_count = 0
+        self.tool_call_count = 0
+        self._llm_starts: dict = {}
+        self._tool_starts: dict = {}
+
+    def on_chat_model_start(self, serialized, messages, *, run_id, **kwargs):
+        self._llm_starts[run_id] = time.perf_counter()
+        self.llm_call_count += 1
+        prompt_chars = sum(len(m.content or "") for batch in messages for m in batch)
+        logger.info("[%s] LLM call #%d start (~%d prompt chars)", self.label, self.llm_call_count, prompt_chars)
+
+    def on_llm_end(self, response, *, run_id, **kwargs):
+        start = self._llm_starts.pop(run_id, None)
+        if start is not None:
+            logger.info("[%s] LLM call end — %.2fs", self.label, time.perf_counter() - start)
+
+    def on_tool_start(self, serialized, input_str, *, run_id, **kwargs):
+        self._tool_starts[run_id] = time.perf_counter()
+        self.tool_call_count += 1
+        logger.info(
+            "[%s] tool call #%d start: %s(%s)", self.label, self.tool_call_count, serialized.get("name"), input_str
+        )
+
+    def on_tool_end(self, output, *, run_id, **kwargs):
+        start = self._tool_starts.pop(run_id, None)
+        if start is not None:
+            logger.info("[%s] tool call end — %.3fs", self.label, time.perf_counter() - start)
+
+    def log_summary(self):
+        total = time.perf_counter() - self.start_time
+        logger.info(
+            "[%s] TOTAL %.2fs | LLM calls: %d | tool calls: %d",
+            self.label,
+            total,
+            self.llm_call_count,
+            self.tool_call_count,
+        )
+        return total
+
+EXERCISE_LIBRARY_PATH = Path(__file__).parent / "data" / "exercises.json"
+with open(EXERCISE_LIBRARY_PATH) as f:
+    _EXERCISE_LIBRARY: list[dict] = json.load(f)
 
 SYSTEM_PROMPT = (
     "You are a personal training coach. Your tone is confident, calm, and "
     "conversational — like a good friend who happens to know their stuff: "
     "casual, warm, everyday language, not clinical or stiff, "
     "and never trying to hype anyone up. Every sentence should say "
-    "something specific and useful, not filler. You're still real with "
-    "them: you don't pile on empty compliments, and you never use fake "
-    "reassurance — no 'you've got this', 'don't worry', 'you'll be "
-    "fine.' You always aim to give a concrete, specific next step toward "
+    "something specific and useful, not filler. You always aim to give a concrete, specific next step toward "
     "their goal based on what they've actually told you. If you don't "
     "have enough information to give a specific step (current numbers, "
     "timeline, training frequency, experience level, etc.), say so "
@@ -29,7 +87,10 @@ SYSTEM_PROMPT = (
     "time.' Or: 'Running a marathon is a solid goal. Five consistent training days gives "
     "us plenty to build on — first step is bringing your easy volume up "
     "gradually. We'll build your base over a few weeks, then start "
-    "layering in intensity.'"
+    "layering in intensity.' When the client asks about swapping an exercise, needs "
+    "an alternative because a piece of equipment isn't available, or asks what "
+    "exercises fit their equipment or experience level, use the lookup_exercise "
+    "tool rather than guessing."
 )
 
 
@@ -65,14 +126,125 @@ def _get_llm() -> ChatOpenAI:
     return _llm_instance
 
 
+def _matches_equipment(exercise_equipment: list[str], available: Optional[list[str]]) -> bool:
+    if available is None:
+        return True
+    return set(exercise_equipment).issubset(set(available))
+
+
+def _format_exercise(exercise: dict) -> str:
+    equipment = ", ".join(exercise["equipment"]) if exercise["equipment"] else "Bodyweight only"
+    return (
+        f"{exercise['name']} ({exercise['muscle_group']}, {exercise['experience_level']}, "
+        f"equipment: {equipment})"
+    )
+
+
+_MUSCLE_GROUPS = sorted({ex["muscle_group"] for ex in _EXERCISE_LIBRARY})
+_EQUIPMENT_ITEMS = sorted({item for ex in _EXERCISE_LIBRARY for item in ex["equipment"]})
+_EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced"]
+
+
+def _filter_candidates(equipment: list[str], experience_level: str) -> list[dict]:
+    """Deterministic equipment/experience filter over the exercise library, run
+    in plain Python instead of letting the LLM discover candidates one at a
+    time via tool calls (which was costing a full LLM round-trip per guess —
+    see PLAN_SYSTEM_PROMPT for where the filtered result gets used).
+
+    Includes exercises at or below the client's stated experience level (an
+    Advanced client can still do Beginner/Intermediate movements), not just
+    exact-level matches — exact-match only leaves just 2-3 candidates for an
+    Advanced client in this library, nowhere near enough to fill a full week.
+    """
+    max_level = _EXPERIENCE_LEVELS.index(experience_level) if experience_level in _EXPERIENCE_LEVELS else len(_EXPERIENCE_LEVELS) - 1
+    return [
+        ex
+        for ex in _EXERCISE_LIBRARY
+        if _matches_equipment(ex["equipment"], equipment)
+        and _EXPERIENCE_LEVELS.index(ex["experience_level"]) <= max_level
+    ]
+
+
+def _format_candidates(candidates: list[dict]) -> str:
+    return "\n".join(f"- {_format_exercise(ex)}" for ex in candidates)
+
+
+@tool
+def lookup_exercise(
+    exercise_name: Annotated[
+        str, Field(description="Exact exercise name to find substitutes for, e.g. 'Back Squat'.")
+    ] = "",
+    muscle_group: Annotated[
+        str, Field(description=f"One of: {', '.join(_MUSCLE_GROUPS)}.")
+    ] = "",
+    equipment: Annotated[
+        Optional[list[str]],
+        Field(description=f"Client's available equipment, from: {', '.join(_EQUIPMENT_ITEMS)}."),
+    ] = None,
+    experience_level: Annotated[
+        str, Field(description=f"One of: {', '.join(_EXPERIENCE_LEVELS)}.")
+    ] = "",
+) -> str:
+    """Look up exercises in Spotter's library by name or muscle group — filtered by the client's equipment and experience level — and surface validated same-muscle-group substitutes when a movement or piece of equipment isn't available."""
+    primary_input = exercise_name or muscle_group or "unspecified"
+    logger.info("tool=lookup_exercise input=%s", primary_input)
+
+    def matches_filters(ex: dict) -> bool:
+        if not _matches_equipment(ex["equipment"], equipment):
+            return False
+        if experience_level and ex["experience_level"].lower() != experience_level.lower():
+            return False
+        return True
+
+    if exercise_name:
+        target = next(
+            (ex for ex in _EXERCISE_LIBRARY if ex["name"].lower() == exercise_name.lower()), None
+        )
+        if target is None:
+            return f"No exercise named '{exercise_name}' found in the library."
+        subs = [
+            ex for ex in _EXERCISE_LIBRARY
+            if ex["name"] in target["substitutes"] and matches_filters(ex)
+        ]
+        if not subs:
+            return (
+                f"{target['name']} targets {target['muscle_group']}, but no substitute "
+                "matched the given equipment/experience filters."
+            )
+        listed = "; ".join(_format_exercise(ex) for ex in subs)
+        return f"{target['name']} targets {target['muscle_group']}. Substitutes: {listed}"
+
+    if muscle_group:
+        matches = [
+            ex for ex in _EXERCISE_LIBRARY
+            if ex["muscle_group"].lower() == muscle_group.lower() and matches_filters(ex)
+        ]
+        if not matches:
+            return f"No exercises found for muscle group '{muscle_group}' matching those filters."
+        listed = "; ".join(_format_exercise(ex) for ex in matches)
+        return f"Exercises for {muscle_group}: {listed}"
+
+    return "Provide an exercise_name or muscle_group to look up."
+
+
 def build_agent():
-    return create_agent(_get_llm(), tools=[], system_prompt=SYSTEM_PROMPT)
+    return create_agent(_get_llm(), tools=[lookup_exercise], system_prompt=SYSTEM_PROMPT)
+
+
+def _tool_used_label(messages) -> str:
+    used = []
+    for message in messages:
+        if isinstance(message, ToolMessage) and message.name and message.name not in used:
+            used.append(message.name)
+    return ", ".join(used) if used else "no tool"
 
 
 def get_reply(agent, user_input):
-    result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
-    reply = result["messages"][-1].content
-    return limit_sentences(reply)
+    timing = TimingCallback("chat")
+    result = agent.invoke({"messages": [{"role": "user", "content": user_input}]}, config={"callbacks": [timing]})
+    timing.log_summary()
+    reply = limit_sentences(result["messages"][-1].content)
+    return f"{reply} [{_tool_used_label(result['messages'])}]"
 
 
 class GoalModel(BaseModel):
@@ -129,7 +301,11 @@ PLAN_SYSTEM_PROMPT = (
     "'Rest / Mobility', exercises=[]). "
     "- Spread training days sensibly across the week and avoid hitting the same primary "
     "muscle group on back-to-back training days. "
-    "- Only program exercises usable with the client's stated equipment. "
+    "- Choose exercises only from the candidate list given below the client profile — it's "
+    "already filtered for this client's equipment and experience level, so every exercise on "
+    "it is usable. Use your judgment to pick, combine, and sequence the best ones for this "
+    "client's specific goal and split; don't just take them in list order, and don't invent "
+    "exercises that aren't on the list. "
     "- Scale volume, load, and exercise complexity to the client's experience level and goal type. "
     "- Where relevant, base targetWeight on the client's stated current value for their goal "
     "metric; omit targetWeight for bodyweight-only or timed movements. "
@@ -142,6 +318,7 @@ PLAN_SYSTEM_PROMPT = (
 
 def _build_plan_prompt(profile: OnboardingRequest) -> str:
     equipment = ", ".join(profile.equipment) if profile.equipment else "bodyweight only"
+    candidates = _filter_candidates(profile.equipment, profile.experience)
     return (
         f"Client profile:\n"
         f"- Goal type: {profile.goalType}\n"
@@ -151,6 +328,8 @@ def _build_plan_prompt(profile: OnboardingRequest) -> str:
         f"- Goal metric: {profile.goal.metric} ({profile.goal.unit}), "
         f"currently at {profile.goal.currentValue}, targeting {profile.goal.targetValue} "
         f"by {profile.goal.targetDate}\n\n"
+        f"Candidate exercises (already filtered for this client's equipment and experience "
+        f"level):\n{_format_candidates(candidates)}\n\n"
         f"Build the 7-day weekly plan now."
     )
 
@@ -164,12 +343,18 @@ def _validate_plan_shape(plan: WeeklyPlanModel, days_per_week: int) -> None:
 
 
 def build_plan_llm():
+    # No tools/agent loop here on purpose: candidate exercises are filtered
+    # deterministically in Python (_filter_candidates) and handed to the model
+    # directly in the prompt, so plan generation is a single structured-output
+    # call rather than a multi-round tool-calling loop. lookup_exercise stays
+    # available to the chat agent (build_agent) for one-off exercise swaps.
     return _get_llm().with_structured_output(WeeklyPlanModel)
 
 
 def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
     prompt = _build_plan_prompt(profile)
     last_error: Exception | None = None
+    timing = TimingCallback("plan")
 
     for _ in range(2):  # one retry on validation failure
         try:
@@ -177,13 +362,16 @@ def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
                 [
                     {"role": "system", "content": PLAN_SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
-                ]
+                ],
+                config={"callbacks": [timing]},
             )
             _validate_plan_shape(result, profile.daysPerWeek)
+            timing.log_summary()
             return result.days
         except (ValidationError, ValueError) as e:
             last_error = e
 
+    timing.log_summary()
     raise RuntimeError(f"Failed to generate a valid plan after retry: {last_error}")
 
 

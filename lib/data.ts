@@ -1,3 +1,5 @@
+import exerciseLibraryData from "../backend/data/exercises.json";
+
 export type Exercise = {
   name: string;
   sets: number;
@@ -5,9 +7,6 @@ export type Exercise = {
   rest: string;
   targetWeight?: number;
   formTip: string;
-  // Rough for now (not yet returned by the backend for real generated plans) —
-  // used to label the Log page's "Other exercises for ___" swap menu.
-  muscleGroup?: string;
 };
 
 export type SetProgress = { done: boolean; reps: string; weight: string };
@@ -111,7 +110,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Bench Press",
-        muscleGroup: "Chest",
         sets: 4,
         reps: "6",
         rest: "2 min",
@@ -120,7 +118,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Overhead Press",
-        muscleGroup: "Shoulders",
         sets: 3,
         reps: "8",
         rest: "90 sec",
@@ -129,7 +126,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Incline Dumbbell Press",
-        muscleGroup: "Chest",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -137,13 +133,12 @@ export const WEEKLY_PLAN: PlanDay[] = [
         formTip: "Keep a slight arch, elbows at about 45°, and don't let the dumbbells drift too far forward.",
       },
       {
-        name: "Triceps Pushdown",
-        muscleGroup: "Triceps",
+        name: "Close-Grip Bench Press",
         sets: 3,
-        reps: "12",
-        rest: "60 sec",
-        targetWeight: 35,
-        formTip: "Keep your elbows pinned to your sides and only move at the elbow, not the shoulder.",
+        reps: "8",
+        rest: "90 sec",
+        targetWeight: 95,
+        formTip: "Keep your grip just inside shoulder width and your elbows tucked, tracking close to your ribs on the way down.",
       },
     ],
     coachNote:
@@ -162,7 +157,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Back Squat",
-        muscleGroup: "Quads",
         sets: 4,
         reps: "6",
         rest: "2 min",
@@ -171,7 +165,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Romanian Deadlift",
-        muscleGroup: "Hamstrings",
         sets: 3,
         reps: "8",
         rest: "90 sec",
@@ -180,8 +173,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
           "Hinge at the hips with a soft knee bend, keep the bar close to your legs, and stop when you feel a stretch in your hamstrings.",
       },
       {
-        name: "Walking Lunges",
-        muscleGroup: "Quads",
+        name: "Walking Lunge",
         sets: 3,
         reps: "12 each leg",
         rest: "60 sec",
@@ -189,17 +181,14 @@ export const WEEKLY_PLAN: PlanDay[] = [
         formTip: "Keep your torso upright and step far enough that your front knee stays behind your toes.",
       },
       {
-        name: "Leg Press",
-        muscleGroup: "Quads",
+        name: "Glute Bridge",
         sets: 3,
-        reps: "10",
-        rest: "90 sec",
-        targetWeight: 220,
-        formTip: "Don't let your lower back round off the pad; stop the descent before it lifts.",
+        reps: "15",
+        rest: "60 sec",
+        formTip: "Drive through your heels and squeeze your glutes hard at the top — avoid arching your lower back to get there.",
       },
       {
         name: "Plank",
-        muscleGroup: "Core",
         sets: 3,
         reps: "45 sec",
         rest: "45 sec",
@@ -222,7 +211,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Barbell Row",
-        muscleGroup: "Back",
         sets: 4,
         reps: "8",
         rest: "90 sec",
@@ -230,26 +218,22 @@ export const WEEKLY_PLAN: PlanDay[] = [
         formTip: "Hinge forward with a flat back and pull the bar to your lower ribs, leading with your elbows.",
       },
       {
-        name: "Lat Pulldown",
-        muscleGroup: "Back",
+        name: "Pull-Up",
         sets: 3,
-        reps: "10",
+        reps: "6",
         rest: "90 sec",
-        targetWeight: 100,
-        formTip: "Pull the bar to your upper chest and avoid leaning back excessively to cheat the weight down.",
+        formTip: "Start from a dead hang and pull until your chin clears the bar, without kipping or swinging.",
       },
       {
-        name: "Seated Cable Row",
-        muscleGroup: "Back",
+        name: "Dumbbell Row",
         sets: 3,
         reps: "10",
         rest: "90 sec",
-        targetWeight: 90,
-        formTip: "Keep your torso still and pull with your back, not just your arms — squeeze your shoulder blades together.",
+        targetWeight: 50,
+        formTip: "Brace one hand on the bench, keep your back flat, and row the dumbbell to your hip without twisting your torso.",
       },
       {
         name: "Barbell Curl",
-        muscleGroup: "Biceps",
         sets: 3,
         reps: "12",
         rest: "60 sec",
@@ -266,7 +250,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
     exercises: [
       {
         name: "Trap Bar Deadlift",
-        muscleGroup: "Full Body",
         sets: 3,
         reps: "6",
         rest: "2 min",
@@ -275,7 +258,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Dumbbell Shoulder Press",
-        muscleGroup: "Shoulders",
         sets: 3,
         reps: "10",
         rest: "90 sec",
@@ -284,7 +266,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Cable Face Pull",
-        muscleGroup: "Rear Delts",
         sets: 3,
         reps: "15",
         rest: "60 sec",
@@ -293,7 +274,6 @@ export const WEEKLY_PLAN: PlanDay[] = [
       },
       {
         name: "Farmer's Carry",
-        muscleGroup: "Grip/Core",
         sets: 3,
         reps: "40 yd",
         rest: "60 sec",
@@ -315,27 +295,29 @@ export const WEEKLY_PLAN: PlanDay[] = [
 
 export const TODAYS_WORKOUT: PlanDay = WEEKLY_PLAN[2];
 
-// Rough hardcoded alternate-exercise pools for the Log page's swap menu, keyed
-// by muscle group so alternates actually target the same muscle as the
-// exercise being swapped. Real generated exercises don't have a muscleGroup
-// yet, so DEFAULT_ALTERNATES covers that fallback case.
-const ALTERNATES_BY_MUSCLE_GROUP: Record<string, string[]> = {
-  Chest: ["Push-Up", "Cable Chest Fly", "Incline Dumbbell Press", "Dips", "Chest Press Machine", "Landmine Press"],
-  Shoulders: ["Arnold Press", "Lateral Raise", "Cable Front Raise", "Pike Push-Up", "Landmine Press"],
-  Triceps: ["Skull Crusher", "Overhead Triceps Extension", "Close-Grip Bench Press", "Dips", "Cable Kickback"],
-  Quads: ["Goblet Squat", "Leg Extension", "Bulgarian Split Squat", "Step-Up", "Hack Squat"],
-  Hamstrings: ["Leg Curl", "Good Morning", "Glute-Ham Raise", "Single-Leg RDL", "Kettlebell Swing"],
-  Core: ["Hollow Hold", "Cable Crunch", "Side Plank", "Dead Bug", "Ab Wheel Rollout"],
-  Back: ["Pull-Up", "Chest-Supported Row", "Straight-Arm Pulldown", "T-Bar Row", "Face Pull"],
-  Biceps: ["Hammer Curl", "Incline Dumbbell Curl", "Cable Curl", "Preacher Curl", "Concentration Curl"],
-  "Full Body": ["Kettlebell Swing", "Renegade Row", "Turkish Get-Up", "Battle Ropes", "Sled Push"],
-  "Rear Delts": ["Reverse Fly", "Face Pull", "Band Pull-Apart", "Rear Delt Row"],
-  "Grip/Core": ["Farmer's Carry", "Suitcase Carry", "Dead Hang", "Plank"],
+// The exercise library (backend/data/exercises.json) is the single source of
+// truth for exercise metadata — every exercise anywhere in the app (mock plan
+// or backend-generated) is drawn from it, so the Log page's swap menu reads
+// muscle group and validated substitutes directly from the same file instead
+// of keeping its own separate, hand-authored copy of this data.
+type LibraryExercise = {
+  name: string;
+  muscle_group: string;
+  equipment: string[];
+  experience_level: string;
+  substitutes: string[];
 };
-const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", "Kettlebell Swing", "Reverse Lunge"];
 
-export function alternatesForMuscleGroup(muscleGroup: string): string[] {
-  return ALTERNATES_BY_MUSCLE_GROUP[muscleGroup] ?? DEFAULT_ALTERNATES;
+const EXERCISE_LIBRARY = exerciseLibraryData as LibraryExercise[];
+
+// Small fallback for the rare case an exercise name doesn't match the
+// library (e.g. a hand-typed name from some future data source).
+const DEFAULT_ALTERNATES = ["Goblet Squat", "Push-Up", "Dumbbell Row", "Plank", "Kettlebell Swing"];
+
+export function libraryInfoForExercise(name: string): { muscleGroup: string | null; alternates: string[] } {
+  const entry = EXERCISE_LIBRARY.find((ex) => ex.name === name);
+  if (!entry) return { muscleGroup: null, alternates: DEFAULT_ALTERNATES };
+  return { muscleGroup: entry.muscle_group, alternates: entry.substitutes };
 }
 
 export const PROGRESS_ACTIVITY = {

@@ -1,0 +1,233 @@
+[
+  {
+    "name": "Bench Press",
+    "muscle_group": "Chest",
+    "equipment": ["Barbell", "Bench"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Incline Dumbbell Press", "Push-Up"]
+  },
+  {
+    "name": "Incline Dumbbell Press",
+    "muscle_group": "Chest",
+    "equipment": ["Dumbbells", "Bench"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Bench Press", "Push-Up"]
+  },
+  {
+    "name": "Push-Up",
+    "muscle_group": "Chest",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Bench Press", "Incline Dumbbell Press"]
+  },
+  {
+    "name": "Overhead Press",
+    "muscle_group": "Shoulders",
+    "equipment": ["Barbell"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Dumbbell Shoulder Press", "Lateral Raise"]
+  },
+  {
+    "name": "Dumbbell Shoulder Press",
+    "muscle_group": "Shoulders",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Overhead Press", "Lateral Raise"]
+  },
+  {
+    "name": "Lateral Raise",
+    "muscle_group": "Shoulders",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Overhead Press", "Dumbbell Shoulder Press"]
+  },
+  {
+    "name": "Close-Grip Bench Press",
+    "muscle_group": "Triceps",
+    "equipment": ["Barbell", "Bench"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Dumbbell Skull Crusher", "Diamond Push-Up"]
+  },
+  {
+    "name": "Dumbbell Skull Crusher",
+    "muscle_group": "Triceps",
+    "equipment": ["Dumbbells", "Bench"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Close-Grip Bench Press", "Diamond Push-Up"]
+  },
+  {
+    "name": "Diamond Push-Up",
+    "muscle_group": "Triceps",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Close-Grip Bench Press", "Dumbbell Skull Crusher"]
+  },
+  {
+    "name": "Back Squat",
+    "muscle_group": "Quads",
+    "equipment": ["Barbell", "Squat rack"],
+    "experience_level": "Advanced",
+    "substitutes": ["Goblet Squat", "Walking Lunge"]
+  },
+  {
+    "name": "Goblet Squat",
+    "muscle_group": "Quads",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Back Squat", "Walking Lunge"]
+  },
+  {
+    "name": "Walking Lunge",
+    "muscle_group": "Quads",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Back Squat", "Goblet Squat"]
+  },
+  {
+    "name": "Romanian Deadlift",
+    "muscle_group": "Hamstrings",
+    "equipment": ["Barbell"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Dumbbell RDL", "Glute Bridge"]
+  },
+  {
+    "name": "Dumbbell RDL",
+    "muscle_group": "Hamstrings",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Romanian Deadlift", "Glute Bridge"]
+  },
+  {
+    "name": "Glute Bridge",
+    "muscle_group": "Hamstrings",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Romanian Deadlift", "Dumbbell RDL"]
+  },
+  {
+    "name": "Plank",
+    "muscle_group": "Core",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Hollow Hold", "Band Pallof Press"]
+  },
+  {
+    "name": "Hollow Hold",
+    "muscle_group": "Core",
+    "equipment": [],
+    "experience_level": "Beginner",
+    "substitutes": ["Plank", "Band Pallof Press"]
+  },
+  {
+    "name": "Band Pallof Press",
+    "muscle_group": "Core",
+    "equipment": ["Resistance bands"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Plank", "Hollow Hold"]
+  },
+  {
+    "name": "Barbell Row",
+    "muscle_group": "Back",
+    "equipment": ["Barbell"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Pull-Up", "Dumbbell Row"]
+  },
+  {
+    "name": "Pull-Up",
+    "muscle_group": "Back",
+    "equipment": ["Pull-up bar"],
+    "experience_level": "Advanced",
+    "substitutes": ["Barbell Row", "Dumbbell Row"]
+  },
+  {
+    "name": "Dumbbell Row",
+    "muscle_group": "Back",
+    "equipment": ["Dumbbells", "Bench"],
+    "experience_level": "Beginner",
+    "substitutes": ["Barbell Row", "Pull-Up"]
+  },
+  {
+    "name": "Barbell Curl",
+    "muscle_group": "Biceps",
+    "equipment": ["Barbell"],
+    "experience_level": "Beginner",
+    "substitutes": ["Hammer Curl", "Band Curl"]
+  },
+  {
+    "name": "Hammer Curl",
+    "muscle_group": "Biceps",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Barbell Curl", "Band Curl"]
+  },
+  {
+    "name": "Band Curl",
+    "muscle_group": "Biceps",
+    "equipment": ["Resistance bands"],
+    "experience_level": "Beginner",
+    "substitutes": ["Barbell Curl", "Hammer Curl"]
+  },
+  {
+    "name": "Trap Bar Deadlift",
+    "muscle_group": "Full Body",
+    "equipment": ["Barbell"],
+    "experience_level": "Advanced",
+    "substitutes": ["Kettlebell Swing", "Rowing Machine Intervals"]
+  },
+  {
+    "name": "Kettlebell Swing",
+    "muscle_group": "Full Body",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Intermediate",
+    "substitutes": ["Trap Bar Deadlift", "Rowing Machine Intervals"]
+  },
+  {
+    "name": "Rowing Machine Intervals",
+    "muscle_group": "Full Body",
+    "equipment": ["Cardio machine"],
+    "experience_level": "Beginner",
+    "substitutes": ["Trap Bar Deadlift", "Kettlebell Swing"]
+  },
+  {
+    "name": "Cable Face Pull",
+    "muscle_group": "Rear Delts",
+    "equipment": ["Resistance bands"],
+    "experience_level": "Beginner",
+    "substitutes": ["Reverse Fly", "Band Pull-Apart"]
+  },
+  {
+    "name": "Reverse Fly",
+    "muscle_group": "Rear Delts",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Cable Face Pull", "Band Pull-Apart"]
+  },
+  {
+    "name": "Band Pull-Apart",
+    "muscle_group": "Rear Delts",
+    "equipment": ["Resistance bands"],
+    "experience_level": "Beginner",
+    "substitutes": ["Cable Face Pull", "Reverse Fly"]
+  },
+  {
+    "name": "Farmer's Carry",
+    "muscle_group": "Grip/Core",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Dead Hang", "Suitcase Carry"]
+  },
+  {
+    "name": "Dead Hang",
+    "muscle_group": "Grip/Core",
+    "equipment": ["Pull-up bar"],
+    "experience_level": "Beginner",
+    "substitutes": ["Farmer's Carry", "Suitcase Carry"]
+  },
+  {
+    "name": "Suitcase Carry",
+    "muscle_group": "Grip/Core",
+    "equipment": ["Dumbbells"],
+    "experience_level": "Beginner",
+    "substitutes": ["Farmer's Carry", "Dead Hang"]
+  }
+]
