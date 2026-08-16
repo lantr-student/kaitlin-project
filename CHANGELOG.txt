@@ -180,18 +180,31 @@ removed, so it never mentions anything that no longer exists.
   reuses one LLM client for both chat and plan generation instead of
   building two.
 
+2026-08-12
+- Progress page: the Trajectory/Consistency toggle is now an animated
+  sliding switch, both charts are bigger, and the page is locked to
+  viewport height on desktop like Log and Coach (no page-level
+  scroll), with tightened header/chart spacing and shrunk stat tiles
+  to make room.
+- Profile page's stat tiles now show six specific numbers — current
+  streak, longest streak, workouts completed, percent to goal, target
+  pace, and total weight moved — instead of placeholder stats.
+- Revised the Profile page's streak numbers for consistency: current
+  streak is now 16 days, tied with the longest streak (16) instead of
+  trailing it, so finishing today's workout sets a new all-time
+  record (17).
+
 2026-08-11
 - Fixed the Log page overflowing horizontally on mobile for long
   exercise names.
 - Added a weekly workout-consistency bar chart to the Progress page
   with a toggle to switch between it and the trajectory chart, plus
-  visual polish (dot markers, bigger charts, locked desktop height).
+  dot markers along the trajectory chart's lines.
 - Fixed the Coach input auto-zooming on iOS Safari, and the chat now
   auto-scrolls to the latest message.
 - Added an editable display name and a new Profile page (stat tiles,
   training profile summary, login credentials, coach avatar picker).
-- Tuned the Profile page's streak numbers for consistency, and made
-  the Coach header rotate through a few short prompts instead of
+- Made the Coach header rotate through a few short prompts instead of
   staying fixed, matching the Plan page's existing rotating headlines.
 - Fixed the Plan page overflowing horizontally on mobile, and made the
   Plan page's coach note read-only, matching the Log page.
