@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from exercise_library import compute_progression, compute_regression, compute_substitutes, find_exercise
 from main import build_agent, build_plan_llm, generate_plan, get_reply, OnboardingRequest, PlanDayModel
+from session_store import log_session, SessionRecord
 
 app = FastAPI()
 agent = build_agent()
@@ -65,3 +66,9 @@ def plan(request: OnboardingRequest):
         return generate_plan(plan_llm, request)
     except RuntimeError:
         raise HTTPException(status_code=502, detail="Failed to generate a training plan. Please try again.")
+
+
+@app.post("/sessions")
+def log_session_endpoint(record: SessionRecord):
+    log_session(record)
+    return {"status": "logged"}

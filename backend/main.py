@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import time
+from datetime import date
 from typing import Annotated, Optional
 
 from dotenv import load_dotenv
@@ -30,6 +31,13 @@ from exercise_library import (
     find_exercise,
     ProgressionResult,
 )
+from progression_calculator import (
+    compute_next_weight,
+    estimate_one_rep_max,
+    format_progression_result,
+    weekly_progression_needed,
+)
+from session_store import get_sessions
 
 load_dotenv()
 
@@ -155,7 +163,10 @@ SYSTEM_PROMPT = (
     "When the client asks about swapping an exercise, needs "
     "an alternative because a piece of equipment isn't available, or asks what "
     "exercises fit their equipment or experience level, use the lookup_exercise "
-    "tool rather than guessing. Write in plain text only, no markdown — the chat "
+    "tool rather than guessing. When the client reports finishing or missing a set, "
+    "or asks whether to add weight next time, use the progression_calculator tool to "
+    "get the next weight, action, and reason instead of computing or guessing it "
+    "yourself. Write in plain text only, no markdown — the chat "
     "UI doesn't render formatting, so never wrap exercise names or anything else "
     "in asterisks or other markdown syntax."
 )
@@ -292,8 +303,41 @@ def lookup_exercise(
     return "Provide an exercise_name, muscle_group, or movement_pattern to look up."
 
 
+@tool
+def progression_calculator(
+    user_id: Annotated[str, Field(description="Client's user id, used to look up their logged session history.")],
+    exercise_name: Annotated[str, Field(description="Exact exercise name to compute the next weight for, e.g. 'Back Squat'.")],
+    goal_target_weight: Annotated[
+        Optional[float],
+        Field(description="Client's target weight in lbs for this lift, if they have one — omit if unknown."),
+    ] = None,
+    goal_target_date: Annotated[
+        Optional[str],
+        Field(description="Client's target date for goal_target_weight, as an ISO date 'YYYY-MM-DD' — omit if unknown."),
+    ] = None,
+) -> str:
+    """Compute the deterministic next-session weight recommendation for a client's logged lift — never do this
+    math yourself. Reads the client's logged sessions for the given exercise and returns the current weight, the
+    recommended next weight, an action (increase/repeat/hold), the reason, an estimated current 1-rep max, and,
+    if a goal weight/date is given, the weekly progression needed to hit it and whether that exceeds the safe cap."""
+    logger.info("tool=progression_calculator input=%s/%s", user_id, exercise_name)
+    sessions = get_sessions(user_id, exercise_name)
+    if not sessions:
+        return f"No logged sessions found for '{exercise_name}' for this client yet — log a session first."
+
+    progression = compute_next_weight(sessions)
+    estimated_1rm = estimate_one_rep_max(sessions)
+
+    weekly_needed = None
+    if goal_target_weight is not None and goal_target_date and estimated_1rm is not None:
+        today = date.today().isoformat()
+        weekly_needed = weekly_progression_needed(estimated_1rm, goal_target_weight, goal_target_date, today)
+
+    return format_progression_result(progression, estimated_1rm, weekly_needed)
+
+
 def build_agent():
-    return create_agent(_get_llm(), tools=[lookup_exercise], system_prompt=SYSTEM_PROMPT)
+    return create_agent(_get_llm(), tools=[lookup_exercise, progression_calculator], system_prompt=SYSTEM_PROMPT)
 
 
 def _tool_used_label(messages) -> str:

@@ -135,6 +135,25 @@ removed, so it never mentions anything that no longer exists.
   Also told the coach to reply in plain text only — it had started
   wrapping exercise names in markdown bold, which the chat UI doesn't
   render, so it was showing up as literal asterisks.
+- Gave the coach agent a second tool, progression_calculator, so weight
+  progression is computed deterministically instead of left to the LLM's
+  own arithmetic (backend/progression_calculator.py). Rules: two
+  consecutive sessions completing all prescribed reps at the same weight
+  recommends +5 lb next session; missing prescribed reps recommends
+  repeating the same weight; anything else holds. It also estimates the
+  client's current 1-rep max from their most recent logged session
+  (Epley formula) and, if the client has a target weight/date, the
+  average lb/week needed to hit it and whether that exceeds a 5 lb/week
+  safety cap. Since there's no persisted workout history anywhere in the
+  app yet, added a temporary in-memory session-log store
+  (backend/session_store.py, explicitly documented as a placeholder for
+  a real database later) plus a new POST /sessions endpoint to write to
+  it; the tool reads from the same store. Logged sessions are scoped by
+  a user_id field even though there's no real account system yet, so the
+  shape is ready once one exists. Added this repo's first tests
+  (pytest, newly added to backend/requirements.txt) covering successful
+  progression, missed reps, streak-reset on a weight change, and the
+  goal/cap calculation.
 
 2026-08-13
 - Fixed a severe plan-generation slowdown: the LLM was calling the
@@ -325,10 +344,12 @@ Coach page
 - While waiting for a reply, the Coach avatar icon connects through a small
   circle to a rounded "thinking" bubble with three bouncing dots, which
   resolves into the real reply bubble once it arrives.
-- The coach's replies can now call a lookup_exercise tool (backend-side)
-  to ground exercise swaps/equipment questions in a real exercise
-  library instead of guessing; every reply bubble ends with a bracketed
-  "[lookup_exercise]" or "[no tool]" tag showing whether it did.
+- The coach's replies can now call backend-side tools instead of guessing:
+  lookup_exercise grounds exercise swaps/equipment questions in a real
+  exercise library, and progression_calculator computes the client's
+  next-session weight recommendation deterministically. Every reply
+  bubble ends with a bracketed tag showing which tool fired (or
+  "[no tool]").
 
 Profile page (new)
 - New page (5th BottomNav tab) with six stat tiles, each with its own
@@ -354,23 +375,30 @@ Data layer (lib/data.ts)
 
 Backend (kaitlin-project/backend/)
 - New FastAPI service (main.py + api.py), deployed on Railway, separate
-  from the Next.js frontend. Three endpoints: POST /chat (a LangChain
-  agent with a coach persona), POST /plan (LLM-generates a 7-day plan
-  from a submitted profile, returned as structured JSON matching the
-  frontend's PlanDay[] shape), and GET /exercises/{name}/relations
-  (computed substitutes/progression/regression for one exercise, used
-  by the Log page's Swap menu).
-- The coach agent (POST /chat) has one tool, lookup_exercise, backed by
-  an authored exercise library (backend/data/exercises.json) with real
-  anatomical primary/secondary muscles, equipment, movement pattern,
-  and compound/isolation type — used to ground exercise swaps and
-  equipment questions instead of guessing. Substitutes/progression/
+  from the Next.js frontend. Endpoints: POST /chat (a LangChain agent
+  with a coach persona), POST /plan (LLM-generates a 7-day plan from a
+  submitted profile, returned as structured JSON matching the frontend's
+  PlanDay[] shape), GET /exercises/{name}/relations (computed
+  substitutes/progression/regression for one exercise, used by the Log
+  page's Swap menu), and POST /sessions (logs a completed workout
+  session for the progression calculator to read back).
+- The coach agent (POST /chat) has two tools. lookup_exercise is backed
+  by an authored exercise library (backend/data/exercises.json) with
+  real anatomical primary/secondary muscles, equipment, movement
+  pattern, and compound/isolation type — used to ground exercise swaps
+  and equipment questions instead of guessing. Substitutes/progression/
   regression aren't stored in that file; backend/exercise_library.py
   computes them from those attributes via a weighted-similarity score,
   shared by the tool and the /exercises/{name}/relations endpoint.
   /plan generation reads from the same library, pre-filtered by
   equipment/experience in Python rather than via tool calls (kept as a
-  single LLM call for latency).
+  single LLM call for latency). progression_calculator
+  (backend/progression_calculator.py) deterministically computes the
+  next-session weight, an estimated current 1-rep max, and (given a
+  goal) the weekly progression needed and whether it exceeds a 5 lb/week
+  cap, reading logged sessions from a temporary in-memory store
+  (backend/session_store.py — a placeholder until a real database
+  exists).
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state
