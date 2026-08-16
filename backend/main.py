@@ -46,6 +46,9 @@ class TimingCallback(BaseCallbackHandler):
         self.start_time = time.perf_counter()
         self.llm_call_count = 0
         self.tool_call_count = 0
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.total_tokens = 0
         self._llm_starts: dict = {}
         self._tool_starts: dict = {}
 
@@ -59,6 +62,43 @@ class TimingCallback(BaseCallbackHandler):
         start = self._llm_starts.pop(run_id, None)
         if start is not None:
             logger.info("[%s] LLM call end — %.2fs", self.label, time.perf_counter() - start)
+
+        usage = self._extract_usage(response)
+        if usage is None:
+            logger.info("[%s] token usage unavailable for this call", self.label)
+            return
+        input_tokens, output_tokens, total_tokens = usage
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+        self.total_tokens += total_tokens
+        logger.info(
+            "[%s] tokens — input: %d, output: %d, total: %d", self.label, input_tokens, output_tokens, total_tokens
+        )
+
+    @staticmethod
+    def _extract_usage(response) -> Optional[tuple[int, int, int]]:
+        """Best-effort token usage extraction. Response shape varies by
+        provider/gateway, so this must never raise — a missing/unrecognized
+        shape just means usage logging is skipped, not a broken plan call."""
+        try:
+            token_usage = (response.llm_output or {}).get("token_usage") if response.llm_output else None
+            if token_usage:
+                return (
+                    token_usage.get("prompt_tokens", 0),
+                    token_usage.get("completion_tokens", 0),
+                    token_usage.get("total_tokens", 0),
+                )
+            message = response.generations[0][0].message
+            usage_metadata = getattr(message, "usage_metadata", None)
+            if usage_metadata:
+                return (
+                    usage_metadata.get("input_tokens", 0),
+                    usage_metadata.get("output_tokens", 0),
+                    usage_metadata.get("total_tokens", 0),
+                )
+        except (AttributeError, IndexError, KeyError, TypeError):
+            pass
+        return None
 
     def on_tool_start(self, serialized, input_str, *, run_id, **kwargs):
         self._tool_starts[run_id] = time.perf_counter()
@@ -75,15 +115,18 @@ class TimingCallback(BaseCallbackHandler):
     def log_summary(self):
         total = time.perf_counter() - self.start_time
         logger.info(
-            "[%s] TOTAL %.2fs | LLM calls: %d | tool calls: %d",
+            "[%s] TOTAL %.2fs | LLM calls: %d | tool calls: %d | tokens in: %d, out: %d, total: %d",
             self.label,
             total,
             self.llm_call_count,
             self.tool_call_count,
+            self.input_tokens,
+            self.output_tokens,
+            self.total_tokens,
         )
         return total
 
-SYSTEM_PROMPT = (
+COACH_PERSONA = (
     "You are a personal training coach. Your tone is confident, calm, and "
     "conversational — like a good friend who happens to know their stuff: "
     "casual, warm, everyday language, not clinical or stiff, "
@@ -100,7 +143,16 @@ SYSTEM_PROMPT = (
     "time.' Or: 'Running a marathon is a solid goal. Five consistent training days gives "
     "us plenty to build on — first step is bringing your easy volume up "
     "gradually. We'll build your base over a few weeks, then start "
-    "layering in intensity.' When the client asks about swapping an exercise, needs "
+    "layering in intensity.'"
+)
+
+# SYSTEM_PROMPT (chat) = persona + chat-only mechanics (tool use, markdown-free
+# UI). PLAN_SYSTEM_PROMPT below reuses COACH_PERSONA directly instead of this,
+# since plan generation has no tools bound and isn't rendered in the chat UI —
+# those two sentences would just be dead prompt tokens on every plan call.
+SYSTEM_PROMPT = (
+    COACH_PERSONA + " "
+    "When the client asks about swapping an exercise, needs "
     "an alternative because a piece of equipment isn't available, or asks what "
     "exercises fit their equipment or experience level, use the lookup_exercise "
     "tool rather than guessing. Write in plain text only, no markdown — the chat "
@@ -304,7 +356,7 @@ class WeeklyPlanModel(BaseModel):
 WEEKDAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 PLAN_SYSTEM_PROMPT = (
-    "You are the same personal training coach described here: " + SYSTEM_PROMPT + " "
+    "You are the same personal training coach described here: " + COACH_PERSONA + " "
     "You are now building a complete 7-day weekly training plan for a client based on "
     "their intake profile, to be returned as structured data. Rules: "
     "- Produce exactly 7 days, in this exact order: Monday, Tuesday, Wednesday, Thursday, "
@@ -329,10 +381,10 @@ PLAN_SYSTEM_PROMPT = (
 )
 
 
-def _build_plan_prompt(profile: OnboardingRequest) -> str:
+def _build_plan_prompt(profile: OnboardingRequest) -> tuple[str, list[dict]]:
     equipment = ", ".join(profile.equipment) if profile.equipment else "bodyweight only"
     candidates = _filter_candidates(profile.equipment, profile.experience)
-    return (
+    prompt = (
         f"Client profile:\n"
         f"- Goal type: {profile.goalType}\n"
         f"- Experience: {profile.experience}\n"
@@ -345,6 +397,7 @@ def _build_plan_prompt(profile: OnboardingRequest) -> str:
         f"level):\n{_format_candidates(candidates)}\n\n"
         f"Build the 7-day weekly plan now."
     )
+    return prompt, candidates
 
 
 def _validate_plan_shape(plan: WeeklyPlanModel, days_per_week: int) -> None:
@@ -353,6 +406,25 @@ def _validate_plan_shape(plan: WeeklyPlanModel, days_per_week: int) -> None:
     training_days = sum(1 for d in plan.days if not d.isRestDay)
     if training_days != days_per_week:
         raise ValueError(f"Expected {days_per_week} training days, got {training_days}")
+
+
+def _validate_plan_exercises(plan: WeeklyPlanModel, candidates: list[dict]) -> None:
+    """Checks every non-rest-day exercise name against the exact candidate
+    list the model was offered (catches hallucinated names and equipment/
+    experience mismatches, not just unknown names) and rejects duplicate
+    exercises within the same day."""
+    candidate_names = {ex["name"].lower() for ex in candidates}
+    for day in plan.days:
+        if day.isRestDay:
+            continue
+        seen: set[str] = set()
+        for exercise in day.exercises:
+            key = exercise.name.lower()
+            if key not in candidate_names:
+                raise ValueError(f"'{exercise.name}' on {day.day} is not in the candidate list")
+            if key in seen:
+                raise ValueError(f"Duplicate exercise '{exercise.name}' on {day.day}")
+            seen.add(key)
 
 
 def build_plan_llm():
@@ -365,7 +437,10 @@ def build_plan_llm():
 
 
 def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
-    prompt = _build_plan_prompt(profile)
+    t0 = time.perf_counter()
+    prompt, candidates = _build_plan_prompt(profile)
+    logger.info("[plan] build-prompt step — %.4fs (%d candidates)", time.perf_counter() - t0, len(candidates))
+
     last_error: Exception | None = None
     timing = TimingCallback("plan")
 
@@ -378,7 +453,10 @@ def generate_plan(plan_llm, profile: OnboardingRequest) -> list[PlanDayModel]:
                 ],
                 config={"callbacks": [timing]},
             )
+            t_validate = time.perf_counter()
             _validate_plan_shape(result, profile.daysPerWeek)
+            _validate_plan_exercises(result, candidates)
+            logger.info("[plan] validate step — %.4fs", time.perf_counter() - t_validate)
             timing.log_summary()
             return result.days
         except (ValidationError, ValueError) as e:

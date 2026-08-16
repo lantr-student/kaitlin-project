@@ -7,7 +7,32 @@ removed, so it never mentions anything that no longer exists.
 
 ================================================================================
 
-2026-08-14
+2026-08-15
+- Audited plan generation for LLM-call count, token size, and missing
+  validation (backend/main.py). Call count and candidate-filtering were
+  already optimal from the 2026-08-13 fix (1 LLM call, 0-1 retries, no
+  tool loop, candidates pre-filtered in Python) — no change needed there.
+  Found and fixed three real issues: (1) PLAN_SYSTEM_PROMPT was splicing
+  in the entire chat SYSTEM_PROMPT, including instructions to use the
+  lookup_exercise tool and format for the chat UI — both irrelevant since
+  plan_llm has no tools bound and returns structured data, not chat text.
+  Split the shared persona text into a new COACH_PERSONA constant that
+  both prompts build from, so the plan prompt drops the dead instructions
+  (measured: system prompt 3054 -> 2659 chars, ~78 fewer input tokens per
+  call in testing) while chat's SYSTEM_PROMPT stays byte-for-byte
+  unchanged. (2) Nothing checked that the model's returned exercise names
+  actually matched the candidate list it was offered — a hallucinated or
+  off-candidate name (e.g. wrong equipment/experience tier) would have
+  shipped straight to the frontend silently. Added _validate_plan_exercises,
+  which checks every non-rest-day exercise against the exact candidates
+  offered and rejects same-day duplicates; failures go through the
+  existing retry-then-502 path, same as the pre-existing day-order/count
+  check. (3) TimingCallback only logged prompt character counts, not real
+  token usage. It now logs actual input/output/total tokens per call
+  (best-effort, degrades to "unavailable" rather than failing if a
+  response doesn't carry usage data) plus per-step timing for prompt
+  building, the LLM call, and validation, alongside the existing
+  total-time/call-count summary.
 - Replaced hand-curated substitutes/progression/regression lists with a
   computed weighted-similarity engine (backend/exercise_library.py):
   ranks every other exercise against a target by primary-muscle overlap
