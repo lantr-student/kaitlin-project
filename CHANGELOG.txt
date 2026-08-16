@@ -154,6 +154,23 @@ removed, so it never mentions anything that no longer exists.
   (pytest, newly added to backend/requirements.txt) covering successful
   progression, missed reps, streak-reset on a weight change, and the
   goal/cap calculation.
+- Added a deterministic progression_calculator tool (backend/progression_calculator.py) so weight progression is computed from logged workout data rather than by LLM arithmetic. It recommends +5 lb after two consecutive sessions completing all prescribed reps at the same weight, repeats the weight when prescribed reps are missed, and otherwise holds the weight. It also estimates current 1RM using the Epley formula, calculates the average lb/week required to reach a target weight by a target date, and checks that rate against the 5 lb/week safety cap.
+Added a temporary in-memory session store (backend/session_store.py) and POST /sessions endpoint because workout history is not yet persisted. Sessions are scoped by user_id to preserve the shape needed for a future account/database system. Added the repo's first pytest coverage for successful progression, missed reps, weight-change streak resets, and goal/cap calculations.
+Added the lookup_exercise tool, backed by the authored exercise JSON library, to retrieve exercises and validated substitutions filtered by equipment, target muscles, and exercise attributes. It supports appropriate alternatives when equipment is unavailable or the user wants a different movement, providing the foundation for more personalized recommendations based on goals, equipment, experience, and preferences.
+- Added a deterministic training-prescription engine (backend/training_prescription.py)
+  that computes the training structure a plan should be built around — split/frequency,
+  weekly working-sets target per muscle group, how often each muscle is trained, and rep
+  range — before any exercises are chosen, all from a new centralized rules config
+  (backend/training_rules.py: rep ranges by goal, volume landmarks by experience level
+  with a goal-based multiplier, and the day-template mapping for 2-6 day splits) instead
+  of leaving those numbers to LLM judgment like plan generation does today. Core is
+  trained on every training day regardless of split, since it's typically programmed
+  near-daily rather than tied to a specific day type. A constraint list can exclude a
+  named muscle group (e.g. an injury) from volume/frequency entirely. This is a
+  standalone module for now — not yet wired into /plan or PLAN_SYSTEM_PROMPT — covered
+  by new tests (backend/tests/test_training_prescription.py) across all 5 goal types, all
+  3 experience levels, all 5 supported training frequencies, and the constraint/cap edge
+  cases.
 
 2026-08-13
 - Fixed a severe plan-generation slowdown: the LLM was calling the
@@ -399,6 +416,14 @@ Backend (kaitlin-project/backend/)
   cap, reading logged sessions from a temporary in-memory store
   (backend/session_store.py — a placeholder until a real database
   exists).
+- backend/training_prescription.py deterministically computes the training
+  structure a plan should be built around — split/frequency, weekly working-
+  sets target and training frequency per muscle group, and rep range — from
+  a client's goal/experience/schedule, before any exercises are chosen. All
+  the underlying numbers (rep ranges, volume landmarks, split templates)
+  live in backend/training_rules.py so they can be retuned without touching
+  the logic. Not yet wired into /plan generation — a standalone, tested
+  module for now.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state
