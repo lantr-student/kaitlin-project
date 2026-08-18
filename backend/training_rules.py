@@ -90,3 +90,38 @@ SPLIT_BY_DAYS: dict[int, dict] = {
 # only for the optional estimated_sets_per_session output — a coarse
 # estimate, not a precise figure.
 MINUTES_PER_SET = 4
+
+# Which weekday each training day lands on, for a given days/week value — an
+# explicit, hand-editable table (like SPLIT_BY_DAYS) rather than a runtime
+# spacing algorithm. Each entry was derived by spreading N training days as
+# evenly as possible across a 7-day week (round(i * 7 / N) for i in 0..N-1),
+# verified by hand against SPLIT_BY_DAYS's day_templates so the one
+# unavoidable back-to-back pair (when N doesn't evenly divide 7) always lands
+# on different templates rather than repeating one (e.g. for 4 days, the
+# Friday/Saturday pair is Upper/Lower, not Upper/Upper).
+TRAINING_WEEKDAYS: dict[int, list[str]] = {
+    2: ["Monday", "Friday"],
+    3: ["Monday", "Wednesday", "Saturday"],
+    4: ["Monday", "Wednesday", "Friday", "Saturday"],
+    5: ["Monday", "Tuesday", "Thursday", "Friday", "Sunday"],
+    6: ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday", "Sunday"],
+}
+
+# Mirrors main.py's WEEKDAY_ORDER — duplicated here (the same pattern
+# _EXPERIENCE_LEVELS already has between frontend/backend) rather than
+# importing main.py, which would pull in LangChain/agent setup this module
+# has no need for.
+WEEKDAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+# Common default working-set count per exercise, used to turn a target sets
+# range for a muscle on a given day into a number of exercise slots.
+SETS_PER_EXERCISE_SLOT = 3
+
+# Muscle groups that appear in training_prescription's output (via
+# LEG_MUSCLES etc. above) but have zero exercises where they're the
+# *primary* muscle anywhere in exercises.json today — Adductors is only ever
+# a secondary mover on leg-compound lifts (Squat/Deadlift variants). Skip
+# generating a dedicated exercise slot for these; they're still covered
+# secondarily by compound leg work. Revisit if the library ever adds a
+# primary-Adductors exercise.
+MUSCLES_WITHOUT_DEDICATED_SLOTS = ["Adductors"]

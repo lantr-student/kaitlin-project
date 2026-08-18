@@ -171,6 +171,24 @@ Added the lookup_exercise tool, backed by the authored exercise JSON library, to
   by new tests (backend/tests/test_training_prescription.py) across all 5 goal types, all
   3 experience levels, all 5 supported training frequencies, and the constraint/cap edge
   cases.
+- Added a workout structure generator (backend/workout_structure.py) that takes a
+  TrainingPrescription and distributes it into concrete days: an actual weekday per
+  training day (evenly spread with rest days interspersed, via a new TRAINING_WEEKDAYS
+  table in backend/training_rules.py), target sets per muscle for that specific day, and
+  how many exercise slots of what type (Compound/Isolation) are needed to hit that — still
+  without choosing exercises. Weekly volume is split across a muscle's training days with
+  an explicit remainder rule (earliest day in the week gets any leftover set, verified to
+  sum back to the exact weekly target rather than drifting from independent rounding); a
+  muscle trained once a week is the same rule's degenerate case, not a special path. Flags
+  (doesn't auto-rebalance) any day whose total target sets exceed the session-length
+  capacity estimate from the prescription layer, and separately flags calendar-adjacent
+  training days that end up sharing a non-Core muscle group (Core is excluded from that
+  check since it's trained daily by design). Adductors never gets a dedicated exercise
+  slot since the exercise library has zero primary-Adductors exercises today — it's still
+  covered secondarily by compound leg work. New tests
+  (backend/tests/test_workout_structure.py) cover all 5 goal types across all 5 training
+  frequencies, the remainder/degenerate-case rules with hand-verified numbers, slot typing,
+  and both flagging mechanisms actually firing.
 
 2026-08-13
 - Fixed a severe plan-generation slowdown: the LLM was calling the
@@ -424,6 +442,11 @@ Backend (kaitlin-project/backend/)
   live in backend/training_rules.py so they can be retuned without touching
   the logic. Not yet wired into /plan generation — a standalone, tested
   module for now.
+- backend/workout_structure.py takes that training prescription and lays it
+  out into actual days: a real weekday per training day, target sets per
+  muscle for that specific day, and how many exercise slots (and of what
+  type — compound vs. isolation) are needed, without picking exercises
+  themselves. Also standalone/not yet wired into /plan generation.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state
