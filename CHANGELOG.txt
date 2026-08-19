@@ -7,6 +7,34 @@ removed, so it never mentions anything that no longer exists.
 
 ================================================================================
 
+2026-08-17
+- Fixed unrealistically crowded Upper/Lower training days in
+  backend/workout_structure.py: every muscle on a day was getting its full
+  independent weekly-share of sets with no credit for the secondary stimulus
+  a compound lift already gives other muscles trained the same day (e.g. a
+  Chest day's pressing already works Triceps/Shoulders; a Back day's rowing
+  already works Biceps/Rear Delts/Forearms) — a 4-day Upper/Lower
+  Intermediate/Build-muscle Upper day was coming out to 38-60 total sets.
+  Added secondary-muscle volume crediting: derived which (primary, secondary)
+  muscle pairings are real and repeatable (>=2 different compound exercises
+  agree, filtering out one-off pairings) directly from exercises.json, then
+  credit 2 sets per qualifying same-day compound source toward a muscle's own
+  target before sizing its dedicated exercise slots (new
+  MIN_SECONDARY_COVERAGE_COUNT / SECONDARY_CREDIT_SETS_PER_SOURCE constants
+  in backend/training_rules.py). DaySlot now reports target_sets (the full
+  weekly-distributed figure, unchanged), secondary_credit_sets, and
+  remaining_target_sets (what still needs a dedicated slot — can be zero,
+  meaning no dedicated exercise needed that day, e.g. Core on a day already
+  full of compound work); day totals (and therefore the over_capacity flag)
+  are now based on remaining_target_sets instead of the pre-credit figure.
+  Training frequency and weekly volume from training_prescription.py are
+  untouched by this — only how a day's dedicated slots get sized changed.
+  The hand-verified example above now comes out to 14-34 sets, a ~40% cut.
+  New tests cover the crowded-day fix with exact numbers, a fully-credited
+  muscle correctly getting no dedicated slot while still being reported,
+  credit never going negative across all goals/frequencies, and a muscle
+  with no qualifying secondary sources being unaffected.
+
 2026-08-15
 - Audited plan generation for LLM-call count, token size, and missing
   validation (backend/main.py). Call count and candidate-filtering were
@@ -446,7 +474,11 @@ Backend (kaitlin-project/backend/)
   out into actual days: a real weekday per training day, target sets per
   muscle for that specific day, and how many exercise slots (and of what
   type — compound vs. isolation) are needed, without picking exercises
-  themselves. Also standalone/not yet wired into /plan generation.
+  themselves. Credits a muscle's own target with secondary stimulus it
+  already gets from other compound work on the same day (derived from real
+  secondary-muscle data in exercises.json), so a day's dedicated-slot volume
+  reflects realistic session load instead of stacking every muscle's full
+  independent share. Also standalone/not yet wired into /plan generation.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state

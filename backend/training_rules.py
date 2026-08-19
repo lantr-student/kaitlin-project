@@ -125,3 +125,20 @@ SETS_PER_EXERCISE_SLOT = 3
 # secondarily by compound leg work. Revisit if the library ever adds a
 # primary-Adductors exercise.
 MUSCLES_WITHOUT_DEDICATED_SLOTS = ["Adductors"]
+
+# Threshold for treating a (primary, secondary) muscle pairing from
+# exercises.json's Compound exercises as a real, repeatable secondary
+# relationship worth crediting (see workout_structure.py's
+# _SECONDARY_COVERAGE) rather than a one-off/incidental pairing. A raw count
+# rather than a fraction, since some muscles have very few compound
+# exercises (e.g. Forearms has only 2) where a fraction would be noisy.
+MIN_SECONDARY_COVERAGE_COUNT = 2
+
+# Sets credited toward a muscle's own weekly target, per same-day compound
+# slot that commonly hits it as a secondary mover (e.g. Chest's Bench Press
+# slot credits Triceps/Shoulders). A heuristic, not a precisely cited number
+# — roughly two-thirds of SETS_PER_EXERCISE_SLOT, reflecting that secondary/
+# synergist stimulus is real but not equivalent to a fully dedicated
+# exercise's worth of direct work. Credit stacks across multiple qualifying
+# sources on the same day, capped at the muscle's own target (never negative).
+SECONDARY_CREDIT_SETS_PER_SOURCE = 2

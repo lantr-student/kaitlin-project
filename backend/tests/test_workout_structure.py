@@ -143,6 +143,50 @@ def test_no_overlap_warnings_for_real_prescriptions(days_per_week, goal_type):
     assert structure.overlap_warnings == []
 
 
+# --- secondary-muscle volume crediting ---
+
+
+def test_secondary_crediting_reduces_crowded_upper_day_total():
+    # Hand-verified in the plan: Intermediate/Build muscle, 4-day Upper/Lower,
+    # Monday (Upper) drops from an uncredited (38, 60) to (14, 34) once
+    # secondary-muscle credit is applied.
+    structure = compute_workout_structure(_prescription(days_per_week=4))
+    assert structure.training_days[0].weekday == "Monday"
+    assert structure.training_days[0].total_target_sets == (14, 34)
+
+
+def test_fully_credited_muscle_gets_empty_slots_but_stays_reported():
+    structure = compute_workout_structure(_prescription(days_per_week=4))
+    monday = structure.training_days[0]
+    core_slot = next(s for s in monday.muscle_slots if s.muscle_group == "Core")
+    assert core_slot.remaining_target_sets == (0, 0)
+    assert core_slot.exercise_slots == []
+    # still reported, not dropped from the day just because it needs no dedicated slot
+    assert core_slot in monday.muscle_slots
+
+
+@pytest.mark.parametrize("days_per_week", [2, 3, 4, 5, 6])
+@pytest.mark.parametrize("goal_type", GOAL_TYPES)
+def test_remaining_target_sets_never_negative(days_per_week, goal_type):
+    structure = compute_workout_structure(_prescription(days_per_week=days_per_week, goal_type=goal_type))
+    for day in structure.training_days:
+        for slot in day.muscle_slots:
+            assert slot.remaining_target_sets[0] >= 0
+            assert slot.remaining_target_sets[1] >= 0
+            assert slot.secondary_credit_sets >= 0
+
+
+def test_muscle_with_no_qualifying_sources_gets_no_credit():
+    # Quads has no muscle group that reliably (>=2 compound exercises) lists
+    # it as a secondary mover, so on a Lower day it should be fully unaffected.
+    structure = compute_workout_structure(_prescription(days_per_week=4))
+    wednesday = structure.training_days[1]
+    assert wednesday.weekday == "Wednesday"
+    quads_slot = next(s for s in wednesday.muscle_slots if s.muscle_group == "Quads")
+    assert quads_slot.secondary_credit_sets == 0
+    assert quads_slot.remaining_target_sets == quads_slot.target_sets
+
+
 def test_overlap_warning_fires_when_calendar_adjacent_days_share_a_muscle():
     # Synthetic prescription: day index 2 (Friday) and day index 3 (Saturday)
     # under a 4-day split are calendar-adjacent -- force both to train Back.

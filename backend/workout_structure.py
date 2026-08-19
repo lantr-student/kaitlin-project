@@ -7,13 +7,16 @@ so this module only depends on the layer below it, not on raw user input.
 
 All tunable numbers live in training_rules.py, not here."""
 
+from collections import Counter
 from math import ceil
 from typing import NamedTuple, Optional
 
 from exercise_library import _EXERCISE_LIBRARY
 from training_prescription import TrainingPrescription
 from training_rules import (
+    MIN_SECONDARY_COVERAGE_COUNT,
     MUSCLES_WITHOUT_DEDICATED_SLOTS,
+    SECONDARY_CREDIT_SETS_PER_SOURCE,
     SETS_PER_EXERCISE_SLOT,
     SPLIT_BY_DAYS,
     TRAINING_WEEKDAYS,
@@ -30,13 +33,33 @@ _MUSCLES_WITH_COMPOUND = {
     for muscle in exercise["primary_muscles"]
 }
 
+# Which muscles each primary muscle's compound exercises reliably also work
+# as a secondary mover (e.g. Chest's presses commonly also hit Triceps and
+# Shoulders) — a pair only counts if it shows up on at least
+# MIN_SECONDARY_COVERAGE_COUNT different compound exercises for that primary
+# muscle, filtering out one-off/incidental pairings.
+_secondary_coverage_counts: dict[str, Counter] = {}
+for _exercise in _EXERCISE_LIBRARY:
+    if _exercise["exercise_type"] != "Compound":
+        continue
+    for _primary in _exercise["primary_muscles"]:
+        _counter = _secondary_coverage_counts.setdefault(_primary, Counter())
+        _counter.update(_exercise["secondary_muscles"])
+
+_SECONDARY_COVERAGE: dict[str, set[str]] = {
+    primary: {muscle for muscle, count in counts.items() if count >= MIN_SECONDARY_COVERAGE_COUNT}
+    for primary, counts in _secondary_coverage_counts.items()
+}
+
 _CORE_MUSCLE = "Core"  # excluded from overlap_warnings — trained daily by design, not a conflict
 
 
 class DaySlot(NamedTuple):
     muscle_group: str
-    target_sets: tuple[int, int]  # (min, max) sets for this muscle, this day
-    exercise_slots: list[str]  # e.g. ["Compound", "Isolation"]
+    target_sets: tuple[int, int]  # (min, max) full weekly-distributed target for this day
+    secondary_credit_sets: int  # sets expected covered by other same-day compound work
+    remaining_target_sets: tuple[int, int]  # target_sets minus credit, floored at 0
+    exercise_slots: list[str]  # sized off remaining_target_sets; [] if fully covered
 
 
 class WorkoutDay(NamedTuple):
@@ -66,8 +89,11 @@ def _distribute_volume(weekly_total: int, frequency: int) -> list[int]:
     return [base + 1 if i < remainder else base for i in range(frequency)]
 
 
-def _slot_types(muscle: str, target_sets: tuple[int, int]) -> list[str]:
-    slot_count = max(1, ceil(round((target_sets[0] + target_sets[1]) / 2) / SETS_PER_EXERCISE_SLOT))
+def _slot_types(muscle: str, remaining_target_sets: tuple[int, int]) -> list[str]:
+    remaining_avg = round((remaining_target_sets[0] + remaining_target_sets[1]) / 2)
+    if remaining_avg <= 0:
+        return []
+    slot_count = ceil(remaining_avg / SETS_PER_EXERCISE_SLOT)
     if muscle not in _MUSCLES_WITH_COMPOUND:
         return ["Isolation"] * slot_count
     return ["Compound"] + ["Isolation"] * (slot_count - 1)
@@ -112,17 +138,31 @@ def compute_workout_structure(prescription: TrainingPrescription) -> WorkoutStru
 
     training_days = []
     for day_index, muscles in enumerate(prescription.day_muscle_groups):
-        muscle_slots = [
-            DaySlot(
-                muscle_group=muscle,
-                target_sets=muscle_daily_targets[muscle][day_index],
-                exercise_slots=_slot_types(muscle, muscle_daily_targets[muscle][day_index]),
+        day_muscles = [m for m in muscles if m not in MUSCLES_WITHOUT_DEDICATED_SLOTS]
+        compound_sources_today = [m for m in day_muscles if m in _MUSCLES_WITH_COMPOUND]
+
+        muscle_slots = []
+        for muscle in day_muscles:
+            target_sets = muscle_daily_targets[muscle][day_index]
+            target_avg = round((target_sets[0] + target_sets[1]) / 2)
+            qualifying_sources = sum(
+                1 for source in compound_sources_today
+                if source != muscle and muscle in _SECONDARY_COVERAGE.get(source, set())
             )
-            for muscle in muscles
-            if muscle not in MUSCLES_WITHOUT_DEDICATED_SLOTS
-        ]
-        total_min = sum(slot.target_sets[0] for slot in muscle_slots)
-        total_max = sum(slot.target_sets[1] for slot in muscle_slots)
+            credit = min(target_avg, SECONDARY_CREDIT_SETS_PER_SOURCE * qualifying_sources)
+            remaining_target_sets = (max(0, target_sets[0] - credit), max(0, target_sets[1] - credit))
+            muscle_slots.append(
+                DaySlot(
+                    muscle_group=muscle,
+                    target_sets=target_sets,
+                    secondary_credit_sets=credit,
+                    remaining_target_sets=remaining_target_sets,
+                    exercise_slots=_slot_types(muscle, remaining_target_sets),
+                )
+            )
+
+        total_min = sum(slot.remaining_target_sets[0] for slot in muscle_slots)
+        total_max = sum(slot.remaining_target_sets[1] for slot in muscle_slots)
         over_capacity = (
             total_max > prescription.estimated_sets_per_session
             if prescription.estimated_sets_per_session is not None
