@@ -225,3 +225,31 @@ STARTING_WEIGHT_FALLBACK_LB: dict[str, dict[str, float]] = {
     "Compound": {"Beginner": 45.0, "Intermediate": 65.0, "Advanced": 95.0},
     "Isolation": {"Beginner": 10.0, "Intermediate": 15.0, "Advanced": 20.0},
 }
+
+# --- Stage 6: Progression and Adaptation ---
+# Moved here from progression_calculator.py (where they originally lived)
+# per Stage 6's spec: "Increments and caps live in the central config."
+# WEIGHT_INCREMENT_LB: how much to add after a 2-session clean streak at the
+# same weight. DEFAULT_WEEKLY_CAP_LB: the default safety ceiling on how fast
+# weekly_progression_needed is allowed to climb toward a goal.
+WEIGHT_INCREMENT_LB = 5.0
+DEFAULT_WEEKLY_CAP_LB = 5.0
+
+# Adaptation-signal thresholds (first-pass values -- FLAG FOR REVIEW). Each
+# is a count of consecutive logged sessions (per exercise) that must show
+# the pattern before plan_adaptation.py raises that signal, rather than
+# reacting to a single rough session.
+# - repeated missed reps: consecutive sessions in a row missing prescribed
+#   reps for the same exercise -- compute_next_weight already repeats the
+#   weight on any single miss; this is for noticing a *pattern*, not one bad day.
+# - stalled progress: consecutive sessions at the *same* weight with no net
+#   increase, even if individually successful -- longer-horizon than
+#   compute_next_weight's own 2-session increase streak, catching cases
+#   where sessions keep narrowly resetting that streak without ever
+#   compounding into a real increase.
+# - consistently skipped: how many caller-reported skip entries for the same
+#   exercise before flagging it (skip detection itself is caller-provided,
+#   not inferred from dates -- see plan_adaptation.py).
+MISSED_REPS_SIGNAL_THRESHOLD = 3
+STALLED_PROGRESS_SESSION_THRESHOLD = 4
+SKIPPED_EXERCISE_SIGNAL_THRESHOLD = 2

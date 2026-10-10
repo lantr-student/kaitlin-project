@@ -128,6 +128,42 @@ removed, so it never mentions anything that no longer exists.
   New tests (backend/tests/test_plan_validation.py) mutate one field off a
   real generated plan per check to trigger each error/warning independently,
   plus a real well-equipped plan that passes clean.
+- Added a deterministic progression-and-adaptation engine (backend/
+  plan_adaptation.py) — Stage 6, which revises an existing plan from
+  logged performance instead of regenerating one. Re-runs the same tiered
+  weight logic Stage 4 uses (so an exercise naturally moves onto real
+  history the moment any exists) and then watches for three adaptation
+  signals per exercise: repeated missed reps (3 consecutive sessions
+  missing prescribed reps — deloads by one weight increment, escalating
+  instead of guessing if that would go to zero or below), stalled progress
+  (4 consecutive sessions with no net weight change — swaps the exercise
+  for an alternative), and consistently skipped (2+ caller-reported skips —
+  same swap treatment). All three threshold counts are new, first-pass
+  config in backend/training_rules.py, flagged for review. Exercise swaps
+  stay within the limits the Prescription Engine already set: same
+  exercise_type (so sets/reps stay valid unchanged), at or below the
+  client's experience level, equipment-appropriate, and never a same-day
+  duplicate — reusing exercise_library's existing substitute scorer rather
+  than building new matching logic. If no safe substitute exists, the
+  signal is collected in needs_llm_review instead of forcing a swap — no
+  LLM is called for this (or for anything else in this module); that list
+  is just what would eventually go to Stage 7. Every candidate revision is
+  run back through Stage 5's validate_plan before being returned; if it
+  fails, the adaptation is discarded and the original plan is returned
+  unchanged with the rejection reason attached, never an invalid plan.
+  Also moved WEIGHT_INCREMENT_LB and DEFAULT_WEEKLY_CAP_LB out of
+  progression_calculator.py and into training_rules.py per this stage's
+  own spec ("increments and caps live in the central config") — no
+  behavior change, progression_calculator.py still exposes both names.
+  New tests (backend/tests/test_plan_adaptation.py) cover clean
+  progression with no signals, the deload path and its escalate-instead-
+  of-negative-weight edge case, both swap-triggering signals, a
+  below-threshold skip count correctly not firing, no-substitute-found
+  escalation, and the revert-on-invalid control flow. Swept every goal x
+  experience x day-count combination under worst-case histories (every
+  exercise stalled; every exercise missing reps and skipped at once) —
+  zero crashes, zero unexpected reverts across 150 combined runs.
+  Standalone for now — not yet wired into /sessions.
 
 2026-08-17
 - Fixed unrealistically crowded Upper/Lower training days in
@@ -618,6 +654,13 @@ Backend (kaitlin-project/backend/)
   schema (hard errors), plus equipment availability and volume/session-time
   ranges (warnings only, since those can legitimately be stretched by
   Stage 2/3's own fallback design). Also standalone for now.
+- backend/plan_adaptation.py revises a plan from logged performance:
+  updates weights via the same logic Stage 4 uses, deloads after repeated
+  missed reps, and swaps an exercise after stalled progress or consistent
+  skips — always within Stage 1's limits, always re-validated by Stage 5
+  before being applied, reverting to the unchanged plan otherwise. No LLM
+  calls; unresolvable situations are only flagged for Stage 7, not acted
+  on. Also standalone for now.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state

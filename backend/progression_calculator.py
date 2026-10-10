@@ -7,9 +7,7 @@ from datetime import date
 from typing import NamedTuple, Optional
 
 from session_store import SessionRecord
-
-WEIGHT_INCREMENT_LB = 5.0
-DEFAULT_WEEKLY_CAP_LB = 5.0
+from training_rules import DEFAULT_WEEKLY_CAP_LB, WEIGHT_INCREMENT_LB  # central config, per Stage 6's spec
 
 
 class ProgressionResult(NamedTuple):

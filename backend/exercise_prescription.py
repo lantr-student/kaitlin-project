@@ -25,7 +25,9 @@ class PrescribedSlot(NamedTuple):
     sets: Optional[int]
     reps: Optional[tuple[int, int]]
     weight: Optional[float]
-    weight_source: str  # "bodyweight" | "history" | "similar_exercise" | "default" | "unfilled"
+    # "bodyweight" | "history" | "similar_exercise" | "default" | "unfilled" | "adaptation_deload"
+    # (the last one is set by plan_adaptation.py, Stage 6, not by this module)
+    weight_source: str
     note: str
 
 
