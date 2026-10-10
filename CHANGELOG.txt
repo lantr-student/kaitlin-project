@@ -7,6 +7,37 @@ removed, so it never mentions anything that no longer exists.
 
 ================================================================================
 
+2026-10-10
+- Added a deterministic exercise-selection engine (backend/exercise_selection.py)
+  that fills every exercise slot from workout_structure.py's output with a real
+  exercise from the library — the next stage of the rules-based plan-generation
+  pipeline, after training_prescription.py and workout_structure.py. For each
+  slot it filters the library by exercise type (compound/isolation), target
+  muscle, equipment, experience level, and a client's avoid-list (the same
+  constraints list training_prescription.py already uses, now also matched
+  against exercise names), then scores survivors by muscle match (primary
+  muscle scores full weight, secondary-only scores half), a goal-based bonus
+  (compound-favoring for Build strength, low-skill/low-stability-favoring for
+  Lose fat/Improve endurance, neutral for Build muscle/Improve Overall
+  Fitness), and picks the highest scorer — ties broken by fewest secondary
+  muscles, then alphabetically, so output is fully deterministic. An exercise
+  never repeats within the same day's slots (repeats across different days
+  are fine), and no two slots on the same day share a movement pattern unless
+  nothing else is available. When a slot's filters come up empty, relaxes
+  constraints in a fixed order — drop movement-pattern variety, then allow
+  one experience level above the client's, then allow equipment the client
+  doesn't have — with a flat score penalty per relaxation level
+  (backend/training_rules.py's new RELAXATION_PENALTY_BY_LEVEL); target
+  muscle and the avoid-list are never relaxed. If even that comes up empty
+  (a genuine library gap), the slot is reported as explicitly unfilled with a
+  reason rather than left blank or invented. New tests
+  (backend/tests/test_exercise_selection.py) cover each filter independently,
+  the scoring weights, same-day no-repeat/cross-day repeat behavior, movement-
+  pattern variety and its relaxation, fallback escalation through all three
+  levels, the genuine-gap case, tie-break determinism, and two end-to-end
+  profiles run through the full Stage 1 → 2 → 3 pipeline. Standalone for
+  now — not yet wired into /plan generation.
+
 2026-08-17
 - Fixed unrealistically crowded Upper/Lower training days in
   backend/workout_structure.py: every muscle on a day was getting its full
@@ -479,6 +510,12 @@ Backend (kaitlin-project/backend/)
   secondary-muscle data in exercises.json), so a day's dedicated-slot volume
   reflects realistic session load instead of stacking every muscle's full
   independent share. Also standalone/not yet wired into /plan generation.
+- backend/exercise_selection.py fills every slot workout_structure.py sized
+  with a real exercise from the library — filtered by type/muscle/equipment/
+  experience/avoid-list and scored by muscle/goal match, with a fixed
+  constraint-relaxation fallback (and an explicit unfilled result for genuine
+  library gaps) so every slot resolves deterministically. Also standalone for
+  now.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state

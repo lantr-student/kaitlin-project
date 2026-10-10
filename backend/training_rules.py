@@ -142,3 +142,53 @@ MIN_SECONDARY_COVERAGE_COUNT = 2
 # exercise's worth of direct work. Credit stacks across multiple qualifying
 # sources on the same day, capped at the muscle's own target (never negative).
 SECONDARY_CREDIT_SETS_PER_SOURCE = 2
+
+# --- Stage 3: Exercise Selection scoring (first-pass defaults — FLAG FOR REVIEW) ---
+# Weighted-sum score used to rank candidates that already survived every hard
+# filter (exercise_type-matches-slot, target-muscle, equipment, experience,
+# avoid-list, same-day no-repeat, movement-pattern variety — see
+# exercise_selection.py). Only relative size matters (used purely for
+# ranking), summing to 1.0 is a convenience, not a requirement.
+WEIGHT_MUSCLE_MATCH = 0.40
+WEIGHT_GOAL_MATCH = 0.20
+WEIGHT_EQUIPMENT_MATCH = 0.20
+WEIGHT_EXPERIENCE_MATCH = 0.20
+
+# A candidate that only hits the slot's target muscle as a secondary mover
+# (not in primary_muscles) scores this fraction of WEIGHT_MUSCLE_MATCH
+# instead of the full weight.
+SECONDARY_MUSCLE_MATCH_FACTOR = 0.5
+
+# goal_match score for goals with no bonus/penalty condition below (keeps
+# the term an explicit no-op rather than silently 0, since 0 could read as
+# a penalty rather than neutral).
+NEUTRAL_GOAL_MATCH_SCORE = 0.5
+
+# Which bonus condition each goal's candidates are checked against for
+# goal_match. "compound_bonus": exercise_type == "Compound" scores full
+# weight, else 0 — strength favors heavier compound lifts. "low_demand_bonus":
+# skill_demand == "Low" and stability_demand == "Low" scores full weight,
+# else 0 — endurance/fat-loss work is done at high rep counts near fatigue,
+# where low-skill/low-stability movements are safer to repeat that often.
+# "neutral": always NEUTRAL_GOAL_MATCH_SCORE, no bonus either way.
+GOAL_MATCH_RULE: dict[str, str] = {
+    "Build strength": "compound_bonus",
+    "Build muscle": "neutral",
+    "Lose fat": "low_demand_bonus",
+    "Improve endurance": "low_demand_bonus",
+    "Improve Overall Fitness": "neutral",
+}
+
+# Flat penalty subtracted from a slot's winning score when it could only be
+# filled by relaxing one or more constraints (see exercise_selection.py's
+# fixed fallback order: 1) drop movement-pattern variety, 2) also allow one
+# experience level above the client's, 3) also allow equipment the client
+# doesn't have — each level cumulative on the previous). Keyed by which
+# level resolved the slot; applied once per slot, not per relaxed rule.
+# Increasing by level reflects that each step is a bigger compromise than
+# the last — first-pass magnitudes, not precisely tuned.
+RELAXATION_PENALTY_BY_LEVEL: dict[int, float] = {
+    1: 0.05,
+    2: 0.15,
+    3: 0.30,
+}
