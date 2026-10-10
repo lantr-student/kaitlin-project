@@ -6,6 +6,11 @@ export type Exercise = {
   reps: string;
   rest: string;
   targetWeight?: number;
+  // True when there's no logged history (for this exercise or a comparable one) to base
+  // a weight recommendation on. The Weight column still shows (unlike bodyweight moves,
+  // which omit targetWeight and leave this unset) but starts blank for the user to set
+  // and log their own starting weight, with an advisory flag above the sets grid.
+  weightUnknown?: boolean;
   formTip: string;
 };
 
@@ -171,7 +176,7 @@ export const WEEKLY_PLAN: PlanDay[] = [
         sets: 3,
         reps: "8",
         rest: "90 sec",
-        targetWeight: 115,
+        weightUnknown: true,
         formTip:
           "Hinge at the hips with a soft knee bend, keep the bar close to your legs, and stop when you feel a stretch in your hamstrings.",
       },

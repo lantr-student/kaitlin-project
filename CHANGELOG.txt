@@ -37,6 +37,97 @@ removed, so it never mentions anything that no longer exists.
   levels, the genuine-gap case, tie-break determinism, and two end-to-end
   profiles run through the full Stage 1 → 2 → 3 pipeline. Standalone for
   now — not yet wired into /plan generation.
+- Reviewed Stages 1-3 end to end to confirm they work as one connected
+  pipeline rather than three independent pieces: swept every goal ×
+  experience level × day-count × equipment combination through all three
+  stages (no exceptions anywhere) and confirmed training_prescription.py,
+  exercise_library.py, and exercise_selection.py all agree exactly on the
+  same goal/experience-level/muscle-group vocabulary, and that a muscle
+  excluded via a constraint correctly disappears from every stage's output
+  with no leftover references. Added compute_full_plan (backend/
+  exercise_selection.py) as a single entry point that runs all three stages
+  from one input object, so goal/experience/equipment/constraints are read
+  once and can't end up inconsistent between stages. New regression tests
+  cover the chained pipeline, exclusion propagation, the cross-stage
+  vocabulary match, and a full-matrix no-crash sweep. No changes needed to
+  training_prescription.py or workout_structure.py — the only gap was the
+  lack of a single entry point, now closed. (Two non-bugs noted and
+  deliberately left alone: a few muscle/type combos have only one matching
+  exercise in the library, e.g. Quads has just one Isolation exercise,
+  which Stage 3 already reports as honestly unfilled rather than inventing
+  one; and under very restrictive equipment, which of two contending
+  muscles gets left unfilled can depend on slot processing order — the
+  total number of unfillable slots is unaffected either way, and fixing
+  the order-dependence would require a global per-day matching algorithm,
+  out of scope for this pass.)
+- Added a deterministic sets/reps/starting-weight engine (backend/
+  exercise_prescription.py) — Stage 4 of the rules-based plan-generation
+  pipeline, attaching a full prescription to every exercise Stage 3 already
+  selected. Sets and reps are a config lookup by goal and by the exercise's
+  existing Compound/Isolation type (backend/training_rules.py's new
+  GOAL_ROLE_SETS_REPS — seeded for Build muscle with 3x6-10 for compound
+  lifts and 3x10-15 for isolation work; the other four goals are first-pass
+  placeholders flagged for review). Weight recommendation tries three
+  things in order: bodyweight exercises always get no weight to track;
+  logged history for that exact exercise goes through the existing
+  progression_calculator (Stage 6) unchanged; with no history for the
+  exercise itself, it looks for the client's most similar already-logged
+  exercise that uses the exact same equipment (reusing exercise_library's
+  existing similarity scorer, restricted to same equipment so the number
+  stays on a sensible scale — no fabricated cross-equipment conversion),
+  and estimates a starting weight at 60% of that exercise's estimated
+  1-rep max (new STARTING_WEIGHT_PERCENT_OF_SIMILAR_1RM, flagged for
+  review); if neither exists, falls back to a flat default by exercise
+  type and experience level (new STARTING_WEIGHT_FALLBACK_LB, also flagged
+  for review). Every recommendation is just that — a recommendation; the
+  client can log whatever weight they actually use, and the next time that
+  exercise comes up it has real history and moves to the history tier
+  automatically, no new feedback mechanism needed beyond what already
+  exists. New tests (backend/tests/test_exercise_prescription.py) cover
+  the config lookup and that editing it changes the output, each weight
+  tier independently (including the same-equipment requirement correctly
+  blocking a same-muscle/different-equipment match), and an end-to-end run
+  through the full Stage 1 → 2 → 3 → 4 pipeline. Standalone for now — not
+  yet wired into /plan generation.
+- Log page: exercises with no weight recommendation to go on (new
+  `weightUnknown` flag on Exercise, lib/data.ts) now show the Weight column
+  blank instead of hiding it, with a small advisory flag above the sets
+  grid ("No weight history yet for this one — aim for N sets of M reps,
+  then set and log your own starting weight below.") naming that
+  exercise's own actual sets/reps rather than a generic number. The
+  existing per-set edit flow already lets the user type in whatever
+  weight they use, so no new input logic was needed — only the Weight
+  column's visibility condition and the new banner (app/log/page.tsx).
+  Demoed on Wednesday's Romanian Deadlift in the mock plan.
+- Added a deterministic plan-validation gate (backend/plan_validation.py) —
+  Stage 5 of the rules-based plan-generation pipeline, the final check
+  every plan passes through (designed to run after initial generation,
+  and later after any adaptation/LLM-patch step revises a plan, though
+  neither of those produces a full revised plan yet to actually call it
+  on). Checks day count, that every exercise is really in the library, a
+  new Pydantic schema for this pipeline's actual output shape, no same-day
+  duplicate exercises, sets/reps matching the goal+role config exactly,
+  and that every muscle Stage 2 sized a dedicated slot for actually got an
+  exercise — any of these failing makes the plan invalid. Equipment
+  availability and weekly-volume/session-time ranges are checked too, but
+  only as warnings: fallback-resolved slots and volume/time approximations
+  are already-accepted tradeoffs of Stage 2/3's design, not signs of a
+  broken plan, confirmed by sweeping the full goal x experience x day-count
+  matrix under both full and bodyweight-only equipment (zero errors either
+  way, just warnings). Caught and fixed a real false positive from a
+  stricter first draft of the muscle-coverage check along the way: it was
+  flagging muscles like Back/Core/Shoulders as "not covered" on full-body
+  days where Stage 2 had deliberately sized zero dedicated slots for them
+  because same-day secondary credit already covered their target — the
+  check now reads Stage 2's actual intent (did it size a slot at all) using
+  backend/workout_structure.py's DaySlot.exercise_slots) rather than
+  independently re-deriving which muscles "should" need one. Also fixed
+  exercise_prescription.py to carry an unfilled slot through as an explicit
+  PrescribedSlot (exercise=None, weight_source="unfilled") instead of
+  silently dropping it, since Stage 5's coverage check needs to see it.
+  New tests (backend/tests/test_plan_validation.py) mutate one field off a
+  real generated plan per check to trigger each error/warning independently,
+  plus a real well-equipped plan that passes clean.
 
 2026-08-17
 - Fixed unrealistically crowded Upper/Lower training days in
@@ -516,6 +607,17 @@ Backend (kaitlin-project/backend/)
   constraint-relaxation fallback (and an explicit unfilled result for genuine
   library gaps) so every slot resolves deterministically. Also standalone for
   now.
+- backend/exercise_prescription.py attaches sets/reps (goal + compound-vs-
+  isolation lookup) and a recommended weight to every exercise Stage 3
+  selected — from logged history where it exists, estimated from the most
+  similar same-equipment exercise the client has logged where it doesn't,
+  or a flat experience-level default as a last resort. Also standalone for
+  now.
+- backend/plan_validation.py checks a generated plan's day count, exercise
+  validity, muscle coverage, duplicate exercises, sets/reps, and output
+  schema (hard errors), plus equipment availability and volume/session-time
+  ranges (warnings only, since those can legitimately be stretched by
+  Stage 2/3's own fallback design). Also standalone for now.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state

@@ -192,3 +192,36 @@ RELAXATION_PENALTY_BY_LEVEL: dict[int, float] = {
     2: 0.15,
     3: 0.30,
 }
+
+# --- Stage 4: Sets, Reps, Starting Weight ---
+# Working-set count and rep range for a single exercise, keyed by goal and by
+# the exercise's existing exercise_type field ("Compound"/"Isolation" -- no
+# new "role" concept, just reusing what's already on every exercise).
+# Independent of logged history; history only affects weight (see below).
+# "Build muscle" is seeded with the user's given numbers. The other four
+# goals are first-pass placeholders directionally consistent with
+# REP_RANGES above (e.g. strength stays low-rep/heavy, endurance stays
+# high-rep/light) but not precisely cited -- FLAG FOR REVIEW.
+GOAL_ROLE_SETS_REPS: dict[str, dict[str, tuple[int, tuple[int, int]]]] = {
+    "Build strength": {"Compound": (3, (3, 6)), "Isolation": (3, (6, 10))},  # FLAG FOR REVIEW
+    "Build muscle": {"Compound": (3, (6, 10)), "Isolation": (3, (10, 15))},
+    "Lose fat": {"Compound": (3, (10, 15)), "Isolation": (3, (12, 15))},  # FLAG FOR REVIEW
+    "Improve endurance": {"Compound": (3, (12, 15)), "Isolation": (3, (15, 20))},  # FLAG FOR REVIEW
+    "Improve Overall Fitness": {"Compound": (3, (8, 12)), "Isolation": (3, (10, 15))},  # FLAG FOR REVIEW
+}
+
+# Starting-weight estimate for an exercise with no logged history of its own,
+# derived from the client's most similar already-logged exercise (same
+# equipment, shares a muscle -- see exercise_prescription.py): that
+# exercise's estimated 1RM (Epley, via progression_calculator) times this
+# fraction. First-pass value shown and accepted during clarification --
+# FLAG FOR REVIEW.
+STARTING_WEIGHT_PERCENT_OF_SIMILAR_1RM = 0.6
+
+# True-cold-start fallback: no history for this exercise or any comparable
+# one. Flat default by exercise_type and experience level, in lb. First-pass
+# values -- FLAG FOR REVIEW.
+STARTING_WEIGHT_FALLBACK_LB: dict[str, dict[str, float]] = {
+    "Compound": {"Beginner": 45.0, "Intermediate": 65.0, "Advanced": 95.0},
+    "Isolation": {"Beginner": 10.0, "Intermediate": 15.0, "Advanced": 20.0},
+}

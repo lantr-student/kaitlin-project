@@ -184,7 +184,7 @@ function NotebookSection({
   openUp: boolean;
   done: boolean;
 }) {
-  const hasWeight = exercise.targetWeight !== undefined;
+  const hasWeight = exercise.targetWeight !== undefined || exercise.weightUnknown === true;
   const { suffix: repsSuffix } = splitReps(exercise.reps);
   const gridCols = hasWeight ? "grid-cols-[auto_1fr_1fr_auto]" : "grid-cols-[auto_1fr_auto]";
 
@@ -257,6 +257,15 @@ function NotebookSection({
         </div>
 
         <div className="mt-1 flex flex-1 flex-col sm:min-h-0">
+          {exercise.weightUnknown && (
+            <div className="mb-1.5 flex items-start gap-1.5 rounded-lg bg-[#E8CD6B]/15 px-2 py-1.5 text-[11px] leading-snug text-[#8A6D2B] dark:bg-[#E8CD6B]/10 dark:text-[#E8CD6B]">
+              <FlagIcon className="mt-0.5 h-3 w-3 flex-none" />
+              <span>
+                No weight history yet for this one — aim for {exercise.sets} sets of {exercise.reps} reps, then set
+                and log your own starting weight below.
+              </span>
+            </div>
+          )}
           <div className={`grid ${gridCols} items-center gap-x-2 gap-y-1 text-[10px] font-medium uppercase tracking-wide ${FAINT}`}>
             <span>Set</span>
             <span>Reps</span>
@@ -491,6 +500,20 @@ function BackRow({ onBack, label }: { onBack: () => void; label: string }) {
       </button>
       <p className={`text-sm font-semibold ${INK}`}>{label}</p>
     </div>
+  );
+}
+
+function FlagIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M5 21V4m0 0h12l-3 4 3 4H5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

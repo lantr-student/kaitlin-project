@@ -18,7 +18,8 @@ from training_rules import (
     WEIGHT_GOAL_MATCH,
     WEIGHT_MUSCLE_MATCH,
 )
-from workout_structure import WorkoutStructure
+from training_prescription import PrescriptionInput, compute_prescription
+from workout_structure import WorkoutStructure, compute_workout_structure
 
 # Fixed, cumulative fallback levels tried in order when a slot's filter pass
 # comes up empty. Level 0 is the strict pass (nothing relaxed). Target-muscle
@@ -171,3 +172,20 @@ def compute_exercise_selection(
         training_days.append(SelectedDay(weekday=day.weekday, split_label=day.split_label, slots=slots))
 
     return SelectedWorkout(training_days=training_days)
+
+
+def compute_full_plan(prescription_input: PrescriptionInput) -> SelectedWorkout:
+    """Runs Stages 1-3 as one pipeline from a single input: training
+    prescription -> workout structure -> exercise selection. Reads
+    goal_type/experience_level/equipment/constraints once from
+    prescription_input and reuses them for every stage, so there's no way
+    for the stages to see inconsistent values for the same client profile."""
+    prescription = compute_prescription(prescription_input)
+    structure = compute_workout_structure(prescription)
+    return compute_exercise_selection(
+        structure,
+        goal_type=prescription_input.goal_type,
+        experience_level=prescription_input.experience_level,
+        equipment=prescription_input.equipment,
+        constraints=prescription_input.constraints,
+    )

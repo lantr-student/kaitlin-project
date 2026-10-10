@@ -5,12 +5,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest
 
-from exercise_library import _EQUIPMENT_ITEMS, _EXERCISE_LIBRARY
-from exercise_selection import _resolve_slot, _score, compute_exercise_selection
+from exercise_library import _EQUIPMENT_ITEMS, _EXERCISE_LIBRARY, _EXPERIENCE_LEVELS, _MUSCLE_GROUPS
+from exercise_selection import _resolve_slot, _score, compute_exercise_selection, compute_full_plan
 from training_prescription import PrescriptionInput, compute_prescription
 from training_rules import (
+    BASE_WEEKLY_SETS_PER_MUSCLE,
+    GOAL_MATCH_RULE,
+    GOAL_TYPES,
     NEUTRAL_GOAL_MATCH_SCORE,
     SECONDARY_MUSCLE_MATCH_FACTOR,
+    SPLIT_BY_DAYS,
     WEIGHT_EQUIPMENT_MATCH,
     WEIGHT_EXPERIENCE_MATCH,
     WEIGHT_GOAL_MATCH,
@@ -257,3 +261,64 @@ def test_end_to_end_every_slot_gets_a_real_exercise(goal_type, experience_level,
         for slot in day.slots:
             assert slot.exercise is not None, slot.unfilled_reason
             assert slot.exercise["name"] in library_names
+
+
+# --- Stage 1 -> 2 -> 3 pipeline wiring ---
+
+
+def test_compute_full_plan_chains_all_three_stages_from_one_input():
+    profile = PrescriptionInput(
+        goal_type="Build strength", experience_level="Intermediate", days_per_week=4, equipment=_EQUIPMENT_ITEMS
+    )
+    result = compute_full_plan(profile)
+    assert len(result.training_days) == 4
+    library_names = {ex["name"] for ex in _EXERCISE_LIBRARY}
+    for day in result.training_days:
+        for slot in day.slots:
+            assert slot.exercise is not None, slot.unfilled_reason
+            assert slot.exercise["name"] in library_names
+
+
+def test_excluded_muscle_never_appears_anywhere_in_the_final_plan():
+    # A muscle excluded via Stage 1's constraints should vanish from Stage 2's
+    # structure and therefore never reach Stage 3 at all -- no slot, no crash.
+    profile = PrescriptionInput(
+        goal_type="Build muscle", experience_level="Intermediate", days_per_week=4,
+        equipment=_EQUIPMENT_ITEMS, constraints=["Shoulders"],
+    )
+    result = compute_full_plan(profile)
+    muscles_present = {slot.muscle_group for day in result.training_days for slot in day.slots}
+    assert "Shoulders" not in muscles_present
+
+
+def test_goal_and_experience_vocabulary_match_across_stages():
+    # Stage 1 (training_prescription.py) and Stage 3 (exercise_selection.py)
+    # must agree on exactly which goal/experience strings are valid, or a
+    # value that passes Stage 1 could later raise in Stage 3 (or vice versa).
+    assert set(GOAL_TYPES) == set(GOAL_MATCH_RULE)
+    assert set(BASE_WEEKLY_SETS_PER_MUSCLE) == set(_EXPERIENCE_LEVELS)
+
+
+def test_muscle_vocabulary_used_by_stage1_is_recognized_by_the_library():
+    # Every muscle group training_prescription.py can put into a day's
+    # structure must exist in the library's muscle vocabulary, or Stage 3
+    # could receive a muscle it can never match any exercise against.
+    from training_rules import CORE_MUSCLES, LEG_MUSCLES, PULL_MUSCLES, PUSH_MUSCLES
+
+    stage1_muscles = set(PUSH_MUSCLES) | set(PULL_MUSCLES) | set(LEG_MUSCLES) | set(CORE_MUSCLES)
+    assert stage1_muscles.issubset(set(_MUSCLE_GROUPS))
+
+
+@pytest.mark.parametrize("goal_type", GOAL_TYPES)
+@pytest.mark.parametrize("experience_level", _EXPERIENCE_LEVELS)
+@pytest.mark.parametrize("days_per_week", sorted(SPLIT_BY_DAYS))
+def test_full_pipeline_never_raises_across_the_entire_input_matrix(goal_type, experience_level, days_per_week):
+    # Exhaustive sweep (no assertion on unfilled slots -- a thin library for
+    # some muscle/type combos, e.g. only one Quads Isolation exercise
+    # existing at all, is an expected content limitation, not a wiring bug;
+    # Stage 3 is expected to report those explicitly rather than invent one).
+    profile = PrescriptionInput(
+        goal_type=goal_type, experience_level=experience_level, days_per_week=days_per_week,
+        session_length_minutes=60, equipment=_EQUIPMENT_ITEMS,
+    )
+    compute_full_plan(profile)
