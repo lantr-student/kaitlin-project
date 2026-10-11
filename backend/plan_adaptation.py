@@ -19,19 +19,19 @@ calendar dates -- there's no persisted workout history to infer from yet
 from collections import Counter
 from typing import NamedTuple, Optional
 
-from exercise_library import _EXPERIENCE_LEVELS, compute_substitutes
+from exercise_library import _EXERCISE_LIBRARY, _EXPERIENCE_LEVELS, _matches_muscle_group, compute_substitutes
 from exercise_prescription import PrescribedSlot, PrescribedWorkout, _round_to_increment, _weight_for
 from plan_validation import ValidationResult, validate_plan
 from progression_calculator import _session_succeeded
 from session_store import SessionRecord
-from training_prescription import PrescriptionInput, TrainingPrescription
+from training_prescription import PrescriptionInput, TrainingPrescription, compute_prescription
 from training_rules import (
     MISSED_REPS_SIGNAL_THRESHOLD,
     SKIPPED_EXERCISE_SIGNAL_THRESHOLD,
     STALLED_PROGRESS_SESSION_THRESHOLD,
     WEIGHT_INCREMENT_LB,
 )
-from workout_structure import WorkoutStructure
+from workout_structure import WorkoutStructure, compute_workout_structure
 
 
 class AdaptationSignal(NamedTuple):
@@ -107,17 +107,41 @@ def _detect_signals(
     return signals
 
 
-def _find_substitute(exercise: dict, slot_type: str, profile: PrescriptionInput, used_today: set[str]) -> Optional[dict]:
-    """Best replacement within the Prescription Engine's own limits: same
-    exercise_type (so the slot's sets/reps lookup still applies unchanged),
-    at or below the client's experience level (Stage 3's own filter
-    semantics, not compute_substitutes' stricter exact-level match), not
-    already used elsewhere that day, and equipment the client actually has."""
+def _find_substitute(
+    exercise: dict, muscle_group: str, slot_type: str, profile: PrescriptionInput, used_today: set[str]
+) -> Optional[dict]:
+    """Best replacement within the Prescription Engine's own limits: still
+    actually works the slot's target muscle (primary or secondary -- Stage
+    3's own match semantics), same exercise_type (so the slot's sets/reps
+    lookup still applies unchanged), at or below the client's experience
+    level (Stage 3's own filter semantics, not compute_substitutes'
+    stricter exact-level match), not already used elsewhere that day,
+    equipment the client actually has, and not on the client's avoid-list
+    (Stage 3's constraints-as-exercise-name-match, never relaxed there --
+    without reapplying it here, a swap could silently reintroduce an
+    exercise the client specifically excluded).
+
+    compute_substitutes' own candidate pool only requires sharing *some*
+    muscle with the full target exercise (primary or secondary, either
+    side) -- not specifically the slot's assigned muscle_group. Without the
+    explicit _matches_muscle_group check below, a weak secondary-secondary
+    overlap (e.g. Dumbbell Fly and Plank both also touch Shoulders) could
+    rank high enough to get chosen despite having nothing to do with the
+    muscle this slot exists for, silently breaking Stage 1's volume
+    targets and Stage 5's coverage check for that muscle. top_n is large
+    (the whole library) since requiring muscle_group match on top of
+    compute_substitutes' own ranking can eliminate most of a smaller
+    top-N slice."""
     max_level = _EXPERIENCE_LEVELS.index(profile.experience_level)
-    for candidate in compute_substitutes(exercise, equipment=profile.equipment, top_n=15):
+    avoid_terms = [c.strip().lower() for c in profile.constraints if c.strip()]
+    for candidate in compute_substitutes(exercise, equipment=profile.equipment, top_n=len(_EXERCISE_LIBRARY)):
+        if not _matches_muscle_group(candidate, muscle_group):
+            continue
         if candidate["exercise_type"] != slot_type:
             continue
         if candidate["name"].lower() in used_today:
+            continue
+        if any(term in candidate["name"].lower() for term in avoid_terms):
             continue
         if _EXPERIENCE_LEVELS.index(candidate["experience_level"]) > max_level:
             continue
@@ -163,7 +187,7 @@ def _apply_adaptation(
         (s for s in exercise_signals if s.signal in ("stalled_progress", "consistently_skipped")), None
     )
     if structural_signal is not None:
-        substitute = _find_substitute(updated.exercise, updated.slot_type, profile, used_today)
+        substitute = _find_substitute(updated.exercise, updated.muscle_group, updated.slot_type, profile, used_today)
         if substitute is None:
             review.append(structural_signal)
         else:
@@ -233,3 +257,22 @@ def compute_adaptation(
 
     rejected_reason = f"Adaptation produced an invalid plan, reverted: {validation.errors[0].message}"
     return AdaptationResult(current_plan, False, changes, signals, needs_llm_review, rejected_reason, validation)
+
+
+def adapt_plan(
+    profile: PrescriptionInput,
+    current_plan: PrescribedWorkout,
+    exercise_history: dict[str, list[SessionRecord]],
+    skipped_exercises: Optional[list[tuple[str, str]]] = None,
+) -> AdaptationResult:
+    """Runs the Stages 1-6 adaptation cycle from one input, the same way
+    exercise_selection.compute_full_plan covers Stages 1-3 and
+    plan_validation.validate_full_plan covers Stages 1-5. prescription and
+    structure are fully determined by profile alone, so this recomputes
+    them rather than asking the caller to pass along copies that could
+    drift from the profile actually used -- compute_adaptation would
+    otherwise validate current_plan against limits from a mismatched
+    profile without any way to notice."""
+    prescription = compute_prescription(profile)
+    structure = compute_workout_structure(prescription)
+    return compute_adaptation(profile, prescription, structure, current_plan, exercise_history, skipped_exercises)

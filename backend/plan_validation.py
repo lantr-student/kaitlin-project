@@ -97,12 +97,13 @@ def _check_exercise_ids(prescribed: PrescribedWorkout) -> list[ValidationIssue]:
 
 
 def _check_equipment(profile: PrescriptionInput, prescribed: PrescribedWorkout) -> list[ValidationIssue]:
+    available = set(profile.equipment)
     issues = []
     for day in prescribed.training_days:
         for slot in day.slots:
             if slot.exercise is None:
                 continue
-            if not _matches_equipment(slot.exercise["equipment"], profile.equipment):
+            if not _matches_equipment(slot.exercise["equipment"], available):
                 issues.append(
                     ValidationIssue(
                         "EQUIPMENT_UNAVAILABLE", "warning",

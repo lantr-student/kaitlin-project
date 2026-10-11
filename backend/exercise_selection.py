@@ -51,7 +51,7 @@ def _candidate_pool(
     slot_type: str,
     level: int,
     experience_level_index: int,
-    equipment: list[str],
+    equipment: set[str],
     avoid_terms: list[str],
     used_today: set[str],
     patterns_today: set[str],
@@ -112,7 +112,7 @@ def _resolve_slot(
     slot_type: str,
     goal_type: str,
     experience_level_index: int,
-    equipment: list[str],
+    equipment: set[str],
     avoid_terms: list[str],
     used_today: set[str],
     patterns_today: set[str],
@@ -147,6 +147,10 @@ def compute_exercise_selection(
 
     experience_level_index = _EXPERIENCE_LEVELS.index(experience_level)
     avoid_terms = [c.strip().lower() for c in constraints if c.strip()]
+    # Converted once here rather than inside _candidate_pool, which would
+    # otherwise re-convert the same list on every one of the up-to-4
+    # fallback-level attempts for every slot in the plan.
+    available_equipment = set(equipment)
 
     training_days = []
     for day in structure.training_days:
@@ -160,7 +164,7 @@ def compute_exercise_selection(
                     slot_type,
                     goal_type,
                     experience_level_index,
-                    equipment,
+                    available_equipment,
                     avoid_terms,
                     used_today,
                     patterns_today,

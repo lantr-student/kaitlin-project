@@ -11,10 +11,12 @@ from training_prescription import PrescriptionInput, compute_prescription
 from training_rules import (
     BASE_WEEKLY_SETS_PER_MUSCLE,
     GOAL_MATCH_RULE,
+    GOAL_ROLE_SETS_REPS,
     GOAL_TYPES,
     NEUTRAL_GOAL_MATCH_SCORE,
     SECONDARY_MUSCLE_MATCH_FACTOR,
     SPLIT_BY_DAYS,
+    STARTING_WEIGHT_FALLBACK_LB,
     WEIGHT_EQUIPMENT_MATCH,
     WEIGHT_EXPERIENCE_MATCH,
     WEIGHT_GOAL_MATCH,
@@ -292,11 +294,19 @@ def test_excluded_muscle_never_appears_anywhere_in_the_final_plan():
 
 
 def test_goal_and_experience_vocabulary_match_across_stages():
-    # Stage 1 (training_prescription.py) and Stage 3 (exercise_selection.py)
-    # must agree on exactly which goal/experience strings are valid, or a
-    # value that passes Stage 1 could later raise in Stage 3 (or vice versa).
-    assert set(GOAL_TYPES) == set(GOAL_MATCH_RULE)
-    assert set(BASE_WEEKLY_SETS_PER_MUSCLE) == set(_EXPERIENCE_LEVELS)
+    # Stage 1 (training_prescription.py), Stage 3 (exercise_selection.py),
+    # and Stage 4 (exercise_prescription.py) must all agree on exactly
+    # which goal/experience strings are valid, or a value that passes one
+    # stage could raise in a later one instead of being caught up front.
+    assert set(GOAL_TYPES) == set(GOAL_MATCH_RULE) == set(GOAL_ROLE_SETS_REPS)
+    assert (
+        set(BASE_WEEKLY_SETS_PER_MUSCLE)
+        == set(_EXPERIENCE_LEVELS)
+        == set(STARTING_WEIGHT_FALLBACK_LB["Compound"])
+        == set(STARTING_WEIGHT_FALLBACK_LB["Isolation"])
+    )
+    for goal in GOAL_TYPES:
+        assert set(GOAL_ROLE_SETS_REPS[goal]) == {"Compound", "Isolation"}
 
 
 def test_muscle_vocabulary_used_by_stage1_is_recognized_by_the_library():

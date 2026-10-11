@@ -8,7 +8,7 @@ import pytest
 from exercise_library import _EQUIPMENT_ITEMS, find_exercise
 from exercise_prescription import compute_exercise_prescription
 from exercise_selection import compute_exercise_selection
-from plan_adaptation import _find_substitute, compute_adaptation
+from plan_adaptation import _find_substitute, adapt_plan, compute_adaptation
 from session_store import SessionRecord
 from training_prescription import PrescriptionInput, compute_prescription
 from training_rules import MISSED_REPS_SIGNAL_THRESHOLD, SKIPPED_EXERCISE_SIGNAL_THRESHOLD, STALLED_PROGRESS_SESSION_THRESHOLD
@@ -165,7 +165,40 @@ def test_find_substitute_returns_none_when_nothing_qualifies():
     equipment_free_profile = PrescriptionInput(
         goal_type="Build muscle", experience_level="Intermediate", days_per_week=3, equipment=[]
     )
-    assert _find_substitute(leg_extension, "Isolation", equipment_free_profile, used_today=set()) is None
+    assert _find_substitute(leg_extension, "Quads", "Isolation", equipment_free_profile, used_today=set()) is None
+
+
+def test_find_substitute_never_returns_an_exercise_unrelated_to_the_slot_muscle():
+    # Dead Hang (Forearms primary, Shoulders/Back secondary) and Cable Face
+    # Pull (Rear Delts primary, Back/Shoulders secondary) only share a weak
+    # secondary-secondary overlap ("Shoulders"/"Back") -- compute_substitutes'
+    # own pool would rank Cable Face Pull as *some* kind of match, but it has
+    # no Forearms relation at all and must never be returned for this slot.
+    # The four curls (Biceps primary, Forearms secondary) are real matches
+    # and should be preferred.
+    dead_hang = find_exercise("Dead Hang")
+    broad_profile = PrescriptionInput(
+        goal_type="Build muscle", experience_level="Advanced", days_per_week=3, equipment=_EQUIPMENT_ITEMS
+    )
+    substitute = _find_substitute(dead_hang, "Forearms", "Isolation", broad_profile, used_today=set())
+    assert substitute is not None
+    assert substitute["name"] not in ("Cable Face Pull", "Reverse Fly", "Band Pull-Apart")
+    assert "Forearms" in substitute["primary_muscles"] or "Forearms" in substitute["secondary_muscles"]
+
+
+def test_find_substitute_never_returns_an_exercise_on_the_avoid_list():
+    # Band Curl (Biceps/Isolation) has several same-muscle alternatives
+    # (Barbell Curl, Preacher Curl, Hammer Curl) -- constraints must still
+    # rule out the ones the client explicitly excluded, the same way
+    # Stage 3's avoid-list filtering never gets relaxed.
+    band_curl = find_exercise("Band Curl")
+    profile_avoiding_barbell_curl = PrescriptionInput(
+        goal_type="Build muscle", experience_level="Advanced", days_per_week=3,
+        equipment=_EQUIPMENT_ITEMS, constraints=["Barbell Curl"],
+    )
+    substitute = _find_substitute(band_curl, "Biceps", "Isolation", profile_avoiding_barbell_curl, used_today=set())
+    assert substitute is not None
+    assert substitute["name"] != "Barbell Curl"
 
 
 # --- invalid result reverts to the original plan, unmodified ---
@@ -187,3 +220,19 @@ def test_invalid_plan_reverts_and_reports_rejection():
     assert result.rejected_reason is not None and "training days" in result.rejected_reason
     assert not result.validation.valid
     assert any(e.code == "WRONG_DAY_COUNT" for e in result.validation.errors)
+
+
+# --- adapt_plan chains the whole Stages 1-6 cycle from one input ---
+
+
+def test_adapt_plan_recomputes_prescription_and_structure_from_the_profile():
+    profile, prescription, structure, plan = _baseline()
+    name = _first_weighted_exercise_name(plan)
+    history = {name.lower(): [_session(name, 100.0, [8, 8, 8], "2026-01-01"), _session(name, 100.0, [8, 8, 8], "2026-01-08")]}
+
+    result = adapt_plan(profile, plan, history)
+
+    assert result.applied
+    assert result.validation.valid
+    direct = compute_adaptation(profile, prescription, structure, plan, history)
+    assert result.plan == direct.plan

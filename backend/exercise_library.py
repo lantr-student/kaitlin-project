@@ -16,11 +16,20 @@ _MUSCLE_GROUPS = sorted(
 _EQUIPMENT_ITEMS = sorted({item for ex in _EXERCISE_LIBRARY for item in ex["equipment"]})
 _MOVEMENT_PATTERNS = sorted({ex["movement_pattern"] for ex in _EXERCISE_LIBRARY})
 
+# O(1) name lookup instead of a linear scan -- names are unique (verified:
+# 52 exercises, 52 unique lowercased names), so this can't silently change
+# which exercise find_exercise returns.
+_EXERCISE_BY_LOWER_NAME: dict[str, dict] = {ex["name"].lower(): ex for ex in _EXERCISE_LIBRARY}
 
-def _matches_equipment(exercise_equipment: list[str], available: Optional[list[str]]) -> bool:
+
+def _matches_equipment(exercise_equipment: list[str], available: Optional[set[str]]) -> bool:
+    """`available` should already be a set (callers that check this against
+    every exercise in the library convert their equipment list to a set
+    once, up front, rather than paying for the list->set conversion on
+    every single exercise they check it against)."""
     if available is None:
         return True
-    return set(exercise_equipment).issubset(set(available))
+    return set(exercise_equipment).issubset(available)
 
 
 def _matches_muscle_group(exercise: dict, muscle_group: str) -> bool:
@@ -31,7 +40,7 @@ def _matches_muscle_group(exercise: dict, muscle_group: str) -> bool:
 
 
 def find_exercise(name: str) -> Optional[dict]:
-    return next((ex for ex in _EXERCISE_LIBRARY if ex["name"].lower() == name.lower()), None)
+    return _EXERCISE_BY_LOWER_NAME.get(name.lower())
 
 
 def _format_exercise(exercise: dict) -> str:
@@ -90,10 +99,11 @@ def _filter_candidates(equipment: list[str], experience_level: str) -> list[dict
     Advanced client in this library, nowhere near enough to fill a full week.
     """
     max_level = _EXPERIENCE_LEVELS.index(experience_level) if experience_level in _EXPERIENCE_LEVELS else len(_EXPERIENCE_LEVELS) - 1
+    available = set(equipment)
     return [
         ex
         for ex in _EXERCISE_LIBRARY
-        if _matches_equipment(ex["equipment"], equipment)
+        if _matches_equipment(ex["equipment"], available)
         and _EXPERIENCE_LEVELS.index(ex["experience_level"]) <= max_level
     ]
 
@@ -159,13 +169,14 @@ def _similarity_score(target: dict, candidate: dict) -> float:
 
 
 def _candidate_pool(target: dict, equipment: Optional[list[str]], experience_level: str = "") -> list[dict]:
+    available = set(equipment) if equipment is not None else None
     pool = []
     for ex in _EXERCISE_LIBRARY:
         if ex["name"] == target["name"]:
             continue
         if not _shares_any_muscle(target, ex):
             continue
-        if not _matches_equipment(ex["equipment"], equipment):
+        if not _matches_equipment(ex["equipment"], available):
             continue
         if experience_level and ex["experience_level"].lower() != experience_level.lower():
             continue

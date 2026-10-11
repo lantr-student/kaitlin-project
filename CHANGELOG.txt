@@ -164,6 +164,55 @@ removed, so it never mentions anything that no longer exists.
   exercise stalled; every exercise missing reps and skipped at once) —
   zero crashes, zero unexpected reverts across 150 combined runs.
   Standalone for now — not yet wired into /sessions.
+- Reviewed Stages 1-6 end to end the same way the earlier Stages 1-3 pass
+  did, and found two real bugs in Stage 6's exercise-swap path this time
+  (both only reachable once a swap actually fires, so the Stage 6 sweeps
+  done while building it hadn't forced enough swaps to surface them):
+  (1) plan_adaptation.py's substitute search only required sharing *some*
+  muscle with the exercise being replaced (primary or secondary, either
+  side) rather than specifically the slot's own target muscle — a weak
+  secondary-secondary overlap (e.g. Dumbbell Fly and Plank both also touch
+  Shoulders) could outrank real alternatives and get chosen despite having
+  nothing to do with the muscle the slot exists for, silently breaking
+  Stage 1's volume targets and Stage 5's coverage check for that muscle.
+  Hit in 268 of 1713 swaps (15.6%) in a full goal x experience x day-count
+  sweep. Fixed by requiring the swap candidate to actually match the
+  slot's muscle_group (reusing exercise_library's own primary-or-secondary
+  match check), confirmed at 0/1569 after the fix across the same sweep.
+  (2) The same substitute search never checked the client's avoid-list at
+  all, so an adaptation swap could silently reintroduce an exercise the
+  client had explicitly excluded, even though Stage 3 never relaxes that
+  same constraint during initial generation. Fixed by applying the same
+  avoid-list filtering Stage 3 already uses; confirmed at 0 violations
+  across a sweep with an active avoid-list. Also added adapt_plan
+  (backend/plan_adaptation.py), a single entry point for the full Stages
+  1-6 cycle (recomputes the training prescription and workout structure
+  from the profile rather than trusting copies a caller might pass in
+  mismatched), mirroring compute_full_plan (Stages 1-3) and
+  validate_full_plan (Stages 1-5). Extended the existing cross-stage
+  vocabulary test (backend/tests/test_exercise_selection.py) to also cover
+  Stage 4's goal/role and experience-level config keys. New regression
+  tests in backend/tests/test_plan_adaptation.py cover both fixed bugs
+  directly. No changes needed to Stages 1-5 — both bugs were contained to
+  Stage 6's own substitute-search logic.
+- Two small performance fixes to the deterministic pipeline, both verified
+  byte-identical output before/after (same SHA-256 hash of every exercise
+  picked across the full goal x experience x day-count sweep) and the full
+  test suite unchanged: find_exercise (backend/exercise_library.py) was a
+  linear scan of the library on every call (used by Stage 4, Stage 5,
+  main.py, and api.py) — now an O(1) dict lookup keyed by lowercased name,
+  built once at import time. _matches_equipment was re-converting the
+  client's equipment list to a set on every single exercise it checked,
+  even though that list is constant for an entire call — equipment is now
+  converted to a set once per call at every hot-loop site (exercise_
+  library.py's _filter_candidates/_candidate_pool, exercise_selection.py's
+  compute_exercise_selection, plan_validation.py's _check_equipment)
+  instead of inside the per-exercise check itself. Net effect on the
+  heaviest case (6-day, Advanced, Build muscle) was modest at today's
+  52-exercise library size (~3% faster per plan generated, timeit-measured
+  over 500 runs) — the real benefit is that neither cost scales with
+  history/library size anymore, where before both would have gotten
+  slower as either grew.
 
 2026-08-17
 - Fixed unrealistically crowded Upper/Lower training days in
@@ -661,6 +710,48 @@ Backend (kaitlin-project/backend/)
   before being applied, reverting to the unchanged plan otherwise. No LLM
   calls; unresolvable situations are only flagged for Stage 7, not acted
   on. Also standalone for now.
+
+Deterministic plan-generation pipeline (backend) — not yet live
+A second, fully separate way of building a weekly plan exists alongside
+the LLM path described in the Backend section above, built as six
+layered, independently-tested modules (246 passing tests total) rather
+than one model call:
+- training_prescription.py turns goal/experience/days-per-week into a
+  split, a weekly min/max set range per muscle, and a rep range — pure
+  config lookups, no exercises chosen yet.
+- workout_structure.py turns that into real weekdays and sized exercise
+  slots per muscle per day, crediting a muscle's target with secondary
+  stimulus it already gets from other compound work that same day so
+  slot counts reflect realistic session load.
+- exercise_selection.py fills every slot with a real exercise, scored by
+  muscle/goal match, falling back through a fixed relaxation order
+  (movement-pattern variety, then experience, then equipment) rather than
+  ever inventing one.
+- exercise_prescription.py attaches sets/reps and a weight recommendation
+  per exercise — from the client's own logged history where it exists,
+  a same-equipment comparable exercise's estimated 1-rep max where it
+  doesn't, or a flat experience-level default as a last resort.
+- plan_validation.py is the gate every plan passes through: day count,
+  real exercises, full muscle coverage, no same-day duplicates, correct
+  sets/reps, and a schema check are hard errors; equipment/volume/session-
+  time stretches are warnings, since Stage 2/3's own fallback design can
+  legitimately produce those without the plan being broken.
+- plan_adaptation.py revises an existing plan from logged performance —
+  deloads after repeated missed reps, swaps an exercise after stalled
+  progress or consistent skips, always re-validated by plan_validation.py
+  before being applied and reverted otherwise. No LLM calls anywhere in
+  any of this; situations it can't resolve with a clear rule are only
+  flagged for a future LLM-patch step, never acted on by calling one.
+Measured speed: generating a full plan through all four generation
+stages takes about 1.3 ms (worst case: 6-day, Advanced, Build muscle;
+timeit, 500 runs) — pure local computation over the 52-exercise library,
+no network call. The LLM path's own 2026-08-13 entry above measured
+~34 seconds per plan once already down to a single call. That's roughly
+26,000x faster for generating the plan's structure, sets, reps, and
+weights — not a fully equivalent comparison, since the LLM call also
+writes the coach-voice notes and form tips in that same request, which
+this pipeline doesn't produce. Not wired into /plan — api.py still calls
+the LLM path above for every real request today.
 
 What hasn't changed
 - Log/set data, Progress, and Profile still run entirely on local state
